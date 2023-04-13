@@ -1,0 +1,17 @@
+<!-- -->
+<launch>
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find rrtstar)/rviz/rrtstar.rviz"/>
+
+    <!--node pkg="map_server" type="map_server" name="map_server" args="$(find rrtstar)/maps/map.yaml"/-->
+
+    <node pkg="rrtstar" type="navagation_astar" name="navagation_astar" output="screen">
+    	<param name="map_path" value="/home/wangpeng/wpollo/src/lanelet/rrtstar/maps/bit.pgm"/>
+    	<param name="resolution" value="0.5"/>
+    	<param name="origin_x" value="-108.0"/>
+    	<param name="origin_y" value="-464.0"/>
+    	<param name="origin_z" value="0.0"/>
+    	<param name="isobs" value="20"/>
+    </node>
+    
+    <include file="$(find prius_description)/launch/demo.launch"/>
+</launch>

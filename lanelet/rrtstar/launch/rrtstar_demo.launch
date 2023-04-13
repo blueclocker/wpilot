@@ -1,0 +1,9 @@
+<!-- -->
+<launch>
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find rrtstar)/rviz/rrtstar.rviz"/>
+
+    <node pkg="map_server" type="map_server" name="map_server" args="$(find rrtstar)/maps/bit.yaml"/>
+
+    <!--node pkg="rrtstar" type="rrtstar_demo" name="rrtstar_demo" output="screen"/-->
+
+</launch>

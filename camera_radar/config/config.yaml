@@ -1,0 +1,34 @@
+camera:
+
+  config_camera: [4306.37205655706, 0.0, 802.1519317540232, 
+                     0.0, 4307.411849731741, 479.2531644403244, 
+                     0.0, 0.0, 1.0]
+  camera_width: 1920
+  camera_height: 1200
+  config_tf: [-0.3, 0.8, 0.0, 1.48, -0.06, 0.024]
+
+match:
+  iou_key: 0.3
+  anchor:
+    scales: [32, 64, 128, 256, 384]
+    ratios: [0.5, 1.0, 2.0]
+
+subscribers:
+
+  camera_reading: 
+    topic: /galaxy_camera/image_raw
+    queue_size: 1
+
+  radar_reading:
+    topic: /delphi_0/delphi_esr
+    queue_size: 1
+
+  dectection:
+    topic: /darknet_ros/bounding_boxes
+    queue_size: 1
+
+publishers:
+
+  camera_radar:
+    topic: fusion_image
+    queue_size: 100

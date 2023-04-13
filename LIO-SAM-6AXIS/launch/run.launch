@@ -1,0 +1,16 @@
+<launch>
+
+    <arg name="project" default="lio_sam_6axis"/>
+
+    <!-- Parameters -->
+    <!--    <rosparam file="$(find lio_sam_6axis)/config/params_ouster.yaml" command="load"/>-->
+    <rosparam file="$(find lio_sam_6axis)/config/params_vlp.yaml" command="load"/>
+
+    <!--- LOAM -->
+    <include file="$(find lio_sam_6axis)/launch/include/module_loam.launch"/>
+
+ 
+    <!--- Run Rviz-->
+    <node pkg="rviz" type="rviz" name="$(arg project)_rviz" args="-d $(find lio_sam_6axis)/launch/include/config/vlp.rviz" />
+
+</launch>
