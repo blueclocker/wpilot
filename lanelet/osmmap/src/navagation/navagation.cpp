@@ -1,7 +1,7 @@
 /*
  * @Author: blueclocker 1456055290@hnu.edu.cn
  * @Date: 2022-11-06 19:32:51
- * @LastEditTime: 2023-03-30 14:55:56
+ * @LastEditTime: 2023-08-12 14:14:26
  * @LastEditors: wpbit
  * @Description: 
  * @FilePath: /wpollo/src/lanelet/osmmap/src/navagation/navagation.cpp
@@ -13,10 +13,9 @@ namespace navagation
 {
 NavagationBase::NavagationBase(ros::NodeHandle &n):n_(n)
 {
-    std::string file_path_, file_name_;
-    double origin_lat_, origin_lon_, origin_ele_;
     n_.getParam("file_path", file_path_);
     n_.getParam("file_name", file_name_);
+    n_.getParam("reverse_file_name", reverse_file_name_);
     n_.getParam("origin_lat", origin_lat_);
     n_.getParam("origin_lon", origin_lon_);
     n_.getParam("origin_ele", origin_ele_);
@@ -52,6 +51,7 @@ NavagationBase::NavagationBase(ros::NodeHandle &n):n_(n)
     //grid_map::GridMapRosConverter::toOccupancyGrid(*gridmapsptr, "obstacle", 255, 0, gridmapmsg);
 
     //基准点设置，默认初始时不存在起点、终点
+    is_check_map_ = false;
     isstart_path_exist_ = false;
     isend_path_exist_ = false;
     start_centerpoint_id_ = -1;
@@ -84,6 +84,36 @@ NavagationBase::~NavagationBase()
     delete visualmap_;
     delete globalplans_;
     delete vectormap_;
+}
+
+bool NavagationBase::CheckMap(const map::centerway::CenterPoint3D &atnow_centerpoint, const double heading)
+{
+    int laneletid = centerwaysptr_->FindNearestLanelet(&atnow_centerpoint, heading);
+    if(laneletid != -1){
+        //确认原始图
+        std::cout << "select origin map!" << std::endl;
+        return true;
+    }
+    map::Map *new_vectormap = new map::Map(file_path_, reverse_file_name_);
+    new_vectormap->SetOrigin(origin_lat_, origin_lon_, origin_ele_);
+    if(new_vectormap->GetCenterwayConstPtr()->FindNearestLanelet(&atnow_centerpoint, heading) != -1){
+        //换新图
+        std::cout << "---------------------------------------------------" << std::endl;
+        vectormap_ = new_vectormap;
+        nodesptr_ = vectormap_->GetNodesConstPtr();
+        waysptr_ = vectormap_->GetWaysConstPtr();
+        relationsptr_ = vectormap_->GetRelationConstPtr();
+        centerwaysptr_ = vectormap_->GetCenterwayConstPtr();
+        globalplans_ = new plan::Globalplan(const_cast<map::centerway::CenterWay*>(centerwaysptr_));
+        map_markerarray_.markers.clear();
+        visualmap_->Map2Marker(nodesptr_, waysptr_, centerwaysptr_, relationsptr_, map_markerarray_, ros::Time::now());
+        std::cout << "select another map!" << std::endl;
+        std::cout << "************** map change successful!! **************" << std::endl;
+        return true;
+    }
+    delete new_vectormap;
+    //两张图都不行
+    return false;
 }
 
 void NavagationBase::FullNavigationInfo()
@@ -343,11 +373,20 @@ void NavagationBase::StartpointCallback(const geometry_msgs::PoseWithCovarianceS
     double xx = msg->pose.pose.position.x;
     double yy = msg->pose.pose.position.y;
     map::centerway::CenterPoint3D startpoint(xx, yy);
-    int startpoint_res = globalplans_->InWhichCenterway(startpoint, nodesptr_, waysptr_, relationsptr_);
     start_state_[0] = xx;
     start_state_[1] = yy;
     start_state_[2] = tf::getYaw(msg->pose.pose.orientation);// [-pi,pi]
+    std::cout << "x: " << xx << ", y: " << yy << ", yaw: " << start_state_[2] << std::endl;
     //std::cout << "start yaw is " << start_state[2] << std::endl;
+    //选择地图
+    if(!is_check_map_){
+        is_check_map_ = CheckMap(startpoint, start_state_[2]);
+    }
+    if(!is_check_map_){
+        std::cout << "select map failed, wait for next location information ..." << std::endl;
+        return;
+    }
+    int startpoint_res = globalplans_->InWhichCenterway(startpoint, nodesptr_, waysptr_, relationsptr_);
     ROS_INFO("start point is in %d path", startpoint_res);
 
     //暂时把起点的位置当作GPS定位信息test

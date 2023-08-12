@@ -97,7 +97,7 @@ Visualization Manager:
       Namespaces:
         center_ways: true
         centerpoints: false
-        centerpoints_number: false
+        centerpoints_number: true
         edge_ways: true
         edgepoints: false
         edgepoints_number: false
@@ -398,7 +398,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 56.921669006347656
+      Distance: 68.37924194335938
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -406,9 +406,9 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -202.06210327148438
-        Y: -300.5019836425781
-        Z: -3.829306660918519e-05
+        X: -200.95701599121094
+        Y: -311.8617248535156
+        Z: -5.96852223679889e-05
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
@@ -416,7 +416,7 @@ Visualization Manager:
       Near Clip Distance: 0.009999999776482582
       Pitch: 1.5697963237762451
       Target Frame: <Fixed Frame>
-      Yaw: 1.740878701210022
+      Yaw: 1.1358801126480103
     Saved: ~
 Window Geometry:
   Displays:

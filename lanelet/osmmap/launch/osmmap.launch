@@ -3,7 +3,8 @@
 <launch>
 <!--param name="use_sim_time" value="true"/-->
 <arg name="file_path" default="$(find osmmap)/maps/"/>
-<arg name="file_name" default="linghe_turns_fromcontainer.osm"/>
+<arg name="file_name" default="linghe_turns_fromgate_max.osm"/>
+<arg name="reverse_file_name" default="linghe_turns_fromcontainer_max.osm"/>
 <arg name="origin_lat" default="39.9558622"/>
 <arg name="origin_lon" default="116.3105016"/>
 <!-- 58.45015716 -->
@@ -14,6 +15,7 @@
 <node pkg="osmmap" type="navagation_node" name="navagation_node" output="screen" >
   <param name="file_path" value="$(arg file_path)"/>
   <param name="file_name" value="$(arg file_name)"/>
+  <param name="reverse_file_name" value="$(arg reverse_file_name)"/>
   <param name="origin_lat" value="$(arg origin_lat)"/>
   <param name="origin_lon" value="$(arg origin_lon)"/>
   <param name="origin_ele" value="$(arg origin_ele)"/>

@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-03-06 15:44:08
- * @LastEditTime: 2023-02-10 15:28:16
+ * @LastEditTime: 2023-08-12 14:08:48
  * @LastEditors: wpbit
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: /wpollo/src/lanelet/osmmap/src/hdmap/centerway.cpp
@@ -119,6 +119,7 @@ std::pair<size_t, size_t> CenterWay::FindNearestIndexPair(const std::vector<doub
             return std::make_pair(i - 1, i);
         }
     }
+    return std::make_pair(-1, -1);
 }
 
 std::vector<CenterPoint3D> CenterWay::ResamplePoints(const node::Node *nodes, const way::Line *line, const int num_segments) const 
@@ -131,6 +132,7 @@ std::vector<CenterPoint3D> CenterWay::ResamplePoints(const node::Node *nodes, co
         // 找到最近的两个点
         double target_length = (static_cast<double>(i) / num_segments) * line_length;
         auto index_pair = FindNearestIndexPair(accumulated_lengths, target_length);
+        if(index_pair.first == -1 && index_pair.second == -1) continue;
 
         // 线性插值
         node::Point3D back_point = *nodes->Find(line->nodeline_[index_pair.first]);
@@ -419,6 +421,7 @@ int CenterWay::FindNearestLanelet(const CenterPoint3D *atnowpoint, const double 
             }
         }
     }
+    if(distemp >= 8.0) return -1;
     return lanelet_id == -1 ? -1 : lanelet_id/100;
 }
 

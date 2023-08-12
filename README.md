@@ -148,7 +148,7 @@ add_dependencies(serialPort ${PROJECT_NAME} fsd_common_msgs_gencpp)
 <exec_depend>fsd_common_msgs</exec_depend>
 ```
 
-##### 开发空间规划模块 open_space
+##### 开放空间规划模块 open_space
 * 提取自apollo
 ```
 roslaunch open_space demo.launch

@@ -1,7 +1,7 @@
 /*
  * @Author: blueclocker 1456055290@hnu.edu.cn
  * @Date: 2022-11-06 19:32:00
- * @LastEditTime: 2023-03-30 14:27:34
+ * @LastEditTime: 2023-08-12 13:20:28
  * @LastEditors: wpbit
  * @Description: 
  * @FilePath: /wpollo/src/lanelet/osmmap/include/navagation/navagation.h
@@ -62,6 +62,8 @@ protected:
     map::Map *vectormap_;
     map::MapVisualization *visualmap_;
     plan::Globalplan *globalplans_;
+    std::string file_path_, file_name_, reverse_file_name_;
+    double origin_lat_, origin_lon_, origin_ele_;
 
     //params
     //起点所在路段id
@@ -76,6 +78,8 @@ protected:
     bool isstart_path_exist_;
     //是否存在有效终点
     bool isend_path_exist_;
+    //换图
+    bool is_check_map_;
     //起点状态, x,y,yaw
     double start_state_[3];
     //终点状态
@@ -116,6 +120,7 @@ protected:
     tf::TransformBroadcaster broadcaster_;
     tf::Transform baselink2map_;
 
+    bool CheckMap(const map::centerway::CenterPoint3D &atnow_centerpoint, const double heading);
     void FullNavigationInfo();
     void FullLanesInfo(const int id);
     void PushCenterPoint(const std::vector<int> &pathid);

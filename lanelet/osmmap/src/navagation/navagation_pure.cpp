@@ -2,7 +2,7 @@
  * @Author: wpbit
  * @Date: 2023-02-14 13:14:06
  * @LastEditors: wpbit
- * @LastEditTime: 2023-02-16 16:45:17
+ * @LastEditTime: 2023-08-12 11:53:10
  * @Description: 
  */
 #include "navagation/navagation_pure.h"
@@ -44,6 +44,15 @@ void NavagationPure::PureCallback(const nav_msgs::Odometry::ConstPtr &msg)
     
     //当前点定位到路段
     map::centerway::CenterPoint3D atnowcenterpoint = map::centerway::CenterPoint3D(*atnowpoint_);
+    //选择地图
+    if(!is_check_map_){
+        is_check_map_ = CheckMap(atnowcenterpoint, start_state_[2]);
+    }
+    if(!is_check_map_){
+        std::cout << "select map failed, wait for next location information ..." << std::endl;
+        return;
+    }
+    
     //当前路段精确定位到某点
     //int atnowcenterway = globalplans_->InWhichCenterway(atnowcenterpoint, nodesptr, waysptr, relationsptr);
     std::vector<int> lanelets_res = globalplans_->LocateLanelets(atnowcenterpoint, nodesptr_, waysptr_, relationsptr_);
