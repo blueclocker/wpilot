@@ -1,7 +1,7 @@
 /*
  * @Author: blueclocker 1456055290@hnu.edu.cn
  * @Date: 2022-11-06 19:32:51
- * @LastEditTime: 2023-08-12 14:14:26
+ * @LastEditTime: 2023-10-31 22:07:49
  * @LastEditors: wpbit
  * @Description: 
  * @FilePath: /wpollo/src/lanelet/osmmap/src/navagation/navagation.cpp
@@ -194,9 +194,9 @@ void NavagationBase::PushCenterPoint(const std::vector<int> &pathid)
     smoothpathnode_.clear();
     if(pathid.empty()) return;
 
-    // smoothpathnode_.push_back(map::centerway::CenterPoint3D(*atnowpoint_));
-    // map::centerway::CenterPoint3D pre_centerway_point = smoothpathnode_.back();
-    map::centerway::CenterPoint3D pre_centerway_point;
+    smoothpathnode_.push_back(map::centerway::CenterPoint3D(*atnowpoint_));
+    map::centerway::CenterPoint3D pre_centerway_point = smoothpathnode_.back();
+    // map::centerway::CenterPoint3D pre_centerway_point;
     double accumulatelength = 0;
     for(int i = 0; i < pathid.size(); ++i)
     {
@@ -204,6 +204,8 @@ void NavagationBase::PushCenterPoint(const std::vector<int> &pathid)
 
         int j = 0;
         if(i == 0) while(j < oneway->length_ - 1 && oneway->centernodeline_[j] != start_centerpoint_id_) j++;
+        ++j; // 只取当前点在路网的下一点
+        if(pathid.size() == 1 && start_centerpoint_id_ >= end_centerpoint_id_) break;
         for(; j < oneway->length_ - 1; ++j)
         {
             smoothpathnode_.push_back(*centerwaysptr_->FindCenterPoint(oneway->centernodeline_[j]));
@@ -229,12 +231,12 @@ void NavagationBase::PushCenterPoint(const std::vector<int> &pathid)
     }
 
     //对终点、起点后处理
-    // if(accumulatelength < 100)
-    // {
-    //     smoothpathnode_.erase(smoothpathnode_.end());
-    //     smoothpathnode_.push_back(map::centerway::CenterPoint3D(end_state_[0], end_state_[1]));
-    //     smoothpathnode_.back().ele_ = smoothpathnode_[1].ele_;
-    // }
+    if(accumulatelength < 100)
+    {
+        // smoothpathnode_.erase(smoothpathnode_.end());
+        smoothpathnode_.push_back(map::centerway::CenterPoint3D(end_state_[0], end_state_[1]));
+        smoothpathnode_.back().ele_ = smoothpathnode_[0].ele_;
+    }
     // if(smoothpathnode_.size() >= 3) smoothpathnode_.erase(smoothpathnode_.begin()+1);
 }
 
@@ -292,21 +294,27 @@ void NavagationBase::SmoothPath()
     // std::cout << "smoothpathnode after size: " << smoothpathnode_.size() << std::endl;
 
     //cubic_spline
-    // if(smoothpathnode_.size() < 2) return;
-    // plan::Spline2D csp_obj(smoothpathnode_);
-    // std::vector<map::centerway::CenterPoint3D> temppathnode;
-    // std::vector<double> rcurvature;
-    // for(double i = 0; i < csp_obj.s.back(); i += 0.2)
-    // {
-    //     std::array<double, 3> point = csp_obj.calc_postion(i);
-    //     map::centerway::CenterPoint3D pointtemp;
-    //     pointtemp.x_ = point[0];
-    //     pointtemp.y_ = point[1];
-    //     pointtemp.ele_ = point[2];
-    //     temppathnode.push_back(pointtemp);
-    //     rcurvature.push_back(csp_obj.calc_curvature(i));
-    // }
-    // smoothpathnode_ = std::move(temppathnode);
+    if(smoothpathnode_.size() < 2) return;
+
+    //only in sim
+    smoothpathnode_[0].x_ = atnowpoint_->local_x_;
+    smoothpathnode_[0].y_ = atnowpoint_->local_y_;
+    smoothpathnode_[0].ele_ = atnowpoint_->elevation_;
+
+    plan::Spline2D csp_obj(smoothpathnode_);
+    std::vector<map::centerway::CenterPoint3D> temppathnode;
+    std::vector<double> rcurvature;
+    for(double i = 0; i < csp_obj.s.back(); i += 0.2)
+    {
+        std::array<double, 3> point = csp_obj.calc_postion(i);
+        map::centerway::CenterPoint3D pointtemp;
+        pointtemp.x_ = point[0];
+        pointtemp.y_ = point[1];
+        pointtemp.ele_ = point[2];
+        temppathnode.push_back(pointtemp);
+        rcurvature.push_back(csp_obj.calc_curvature(i));
+    }
+    smoothpathnode_ = std::move(temppathnode);
 
     //osqp
     // if(smoothpathnode_.size() < 2) return;

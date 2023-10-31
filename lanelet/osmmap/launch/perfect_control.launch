@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<launch>
+<arg name="file_path" default="$(find osmmap)/maps/"/>
+<node pkg="osmmap" type="perfect_control_node" name="perfect_control_node"/>
+
+</launch>

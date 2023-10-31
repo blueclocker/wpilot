@@ -1,7 +1,7 @@
 /*
  * @Author: blueclocker 1456055290@hnu.edu.cn
  * @Date: 2022-11-06 21:26:47
- * @LastEditTime: 2023-10-31 16:14:47
+ * @LastEditTime: 2023-10-31 17:35:12
  * @LastEditors: wpbit
  * @Description: 
  * @FilePath: /wpollo/src/lanelet/osmmap/src/navagation/navagation_sim.cpp
@@ -121,7 +121,7 @@ void NavagationSim::SimCallback(const nav_msgs::Odometry::ConstPtr &msg)
                 visualmap_->Path2Marker(centerwaysptr_, paths_, path_markerarray_, currenttime_);
                 PushCenterPoint(paths_);
                 //smooth
-                // SmoothPath();
+                SmoothPath();
                 visualmap_->Smoothpath2Marker(smoothpathnode_, path_markerarray_, currenttime_);
                 //发布导航信息
                 FullNavigationInfo();
@@ -274,7 +274,8 @@ void NavagationSim::Process()
         // gridmap_pub.publish(gridmapmsg);
         // navigation_pub.publish(laneletinfo);
         //到达终点退出程序
-        if(start_centerpoint_id_ == end_centerpoint_id_)
+        double last_dis = std::pow(end_state_[0]-start_state_[0], 2) + std::pow(end_state_[1]-start_state_[1], 2);
+        if(std::fabs(start_state_[0]) > 0.001 && std::fabs(start_state_[1]) > 0.001 && last_dis < 0.25)
         {
             std::cout << "***************************************************" << std::endl;
             std::cout << std::endl;

@@ -237,6 +237,9 @@ add_executable(lattice_node src/lattice_main.cpp)
 target_link_libraries(lattice_node map_lib geographicLib)
 #add_dependencies(lattice_node ${PROJECT_NAME}_gencpp)
 
+add_executable(perfect_control_node src/perfect_control_main.cpp)
+target_link_libraries(perfect_control_node ${catkin_LIBRARIES})
+
 #add_executable(math_test src/tools/math_test.cpp src/test/math.cpp)
 #target_link_libraries(math_test ${catkin_LIBRARIES})
 
