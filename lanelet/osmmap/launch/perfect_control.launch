@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<launch>
+<node pkg="osmmap" type="perfect_control" name="perfect_control" output="screen" >
+</node>
+
+</launch>

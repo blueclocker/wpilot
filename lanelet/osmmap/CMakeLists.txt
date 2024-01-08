@@ -228,6 +228,9 @@ add_executable(tf_pub src/tf_pub.cpp)
 target_link_libraries(tf_pub map_lib)
 #add_dependencies(tf_pub ${PROJECT_NAME}_gencpp fsd_common_msgs_gencpp)
 
+add_executable(perfect_control src/perfect_control_main.cpp)
+target_link_libraries(perfect_control ${catkin_LIBRARIES})
+
 #############
 ## Install ##
 #############

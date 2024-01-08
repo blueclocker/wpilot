@@ -121,7 +121,7 @@ void NavagationPure::PureCallback(const nav_msgs::Odometry::ConstPtr &msg)
                 visualmap_->Path2Marker(centerwaysptr_, paths_, path_markerarray_, currenttime_);
                 PushCenterPoint(paths_);
                 //smooth
-                // SmoothPath();
+                SmoothPath();
                 visualmap_->Smoothpath2Marker(smoothpathnode_, path_markerarray_, currenttime_);
                 //发布导航信息
                 FullNavigationInfo();
