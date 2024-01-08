@@ -184,7 +184,7 @@ add_library(ros_rviz_toolslib
   src/ros_viz_tools/ros_viz_tools.cpp
 )
 
-add_library(grid_map_pcllib SHARED
+add_library(grid_map_pcllib
   src/grid_map_pcl/GridMapPclConverter.cpp
   src/grid_map_pcl/GridMapPclLoader.cpp
   src/grid_map_pcl/helpers.cpp

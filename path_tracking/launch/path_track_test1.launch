@@ -1,0 +1,15 @@
+<launch>
+  
+  <node pkg="can_rs" type="can_miniev" name="can_miniev" >
+
+  </node>
+
+  <node pkg="path_tracking" type="path_track_stanley" name="path_track_stanley" output="screen" >
+
+  </node>
+ 
+  <node pkg="serial" type="serialPort" name="serialPort" >
+
+  </node>
+
+</launch>

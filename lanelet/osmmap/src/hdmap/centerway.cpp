@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-03-06 15:44:08
- * @LastEditTime: 2022-10-03 19:06:36
+ * @LastEditTime: 2022-11-03 22:32:14
  * @LastEditors: blueclocker 1456055290@hnu.edu.cn
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: /wpollo/src/lanelet/osmmap/src/hdmap/centerway.cpp
@@ -119,6 +119,9 @@ std::pair<size_t, size_t> CenterWay::FindNearestIndexPair(const std::vector<doub
             return std::make_pair(i - 1, i);
         }
     }
+    
+    //usually can not reach here, but if reach, error occur!
+    return std::make_pair(-1, -1);
 }
 
 std::vector<CenterPoint3D> CenterWay::ResamplePoints(const node::Node *nodes, const way::Line *line, const int num_segments) const 
@@ -332,7 +335,7 @@ void CenterWay::FindNeighbor(const int centerwayid, std::vector<int> &neighbors)
         return;
     }
     FindNeighborleft(centerwayid, neighbors);
-    neighbors.pop_back();
+    if(!neighbors.empty()) neighbors.pop_back();
     FindNeighborright(centerwayid, neighbors);
 }
 
@@ -415,7 +418,7 @@ int CenterWay::FindNearestLanelet(const CenterPoint3D *atnowpoint, const double 
             }
         }
     }
-    return lanelet_id/100;
+    return lanelet_id == -1 ? -1 : lanelet_id/100;
 }
 
 void CenterWay::Run(const node::Node *nodes, const way::Way *ways, const relation::Relation *relations)

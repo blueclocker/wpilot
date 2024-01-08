@@ -162,7 +162,7 @@ include_directories(
 
 add_executable(camera_radar_node src/camera_radar_node.cpp src/camera_radar.cpp src/Hungarian.cpp)
 target_link_libraries(camera_radar_node ${catkin_LIBRARIES} ${OpenCV_LIBS})
-add_dependencies(camera_radar_node darknet_ros_msgs_gencpp can_msgs_gencpp)
+add_dependencies(camera_radar_node darknet_ros_msgs_gencpp )#can_msgs_gencpp)
 #############
 ## Install ##
 #############

@@ -10,9 +10,10 @@
 #include<pcl/point_cloud.h>
 #include<pcl_conversions/pcl_conversions.h>
 #include<sensor_msgs/PointCloud2.h>
+#include <pcl/filters/voxel_grid.h>
 #include<pcl/io/pcd_io.h>//which contains the required definitions to load and store point clouds to PCD and other file formats.
  
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   ros::init (argc, argv, "PCDviewer");
   if(argc != 2)
@@ -22,12 +23,18 @@ main (int argc, char **argv)
   }
   ros::NodeHandle nh;
   ros::Publisher pcl_pub = nh.advertise<sensor_msgs::PointCloud2> ("pcl_output", 1);
-  pcl::PointCloud<pcl::PointXYZ> cloud;
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::PointCloud<pcl::PointXYZ>::Ptr filter_out(new pcl::PointCloud<pcl::PointXYZ>);
   sensor_msgs::PointCloud2 output;
   std::string path;
-  pcl::io::loadPCDFile (argv[1], cloud); //修改自己pcd文件所在路径
+  pcl::io::loadPCDFile (argv[1], *cloud); //修改自己pcd文件所在路径
+  //voxel_filter
+  pcl::VoxelGrid<pcl::PointXYZ> filter;
+  filter.setInputCloud(cloud);
+  filter.setLeafSize(0.2, 0.2, 0.2);
+  filter.filter(*filter_out);
   //Convert the cloud to ROS message
-  pcl::toROSMsg(cloud, output);
+  pcl::toROSMsg(*filter_out, output);
   output.header.frame_id = "map";//this has been done in order to be able to visualize our PointCloud2 message on the RViz visualizer    
   ros::Rate loop_rate(1);
   while (ros::ok())
@@ -36,6 +43,7 @@ main (int argc, char **argv)
     ros::spinOnce();
     loop_rate.sleep();
   }
+  pcl::io::savePCDFile("/home/wp/wpollo/filter_out.pcd", *filter_out);
   return 0;
 }
 

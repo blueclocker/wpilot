@@ -56,12 +56,11 @@ include_directories(include ${OpenCV_INCLUDE_DIRS})
 # )
 
 add_executable(${PROJECT_NAME}_node src/frenet_optimal_trajectory.cpp ${FRENET_SOURCES})
-add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_gencpp)
-
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
   ${EIGEN3_LIBRARIES}
   ${OpenCV_LIBRARIES}
   # geographicLib
 )
+add_dependencies(${PROJECT_NAME}_node rs_perception_gencpp)
 

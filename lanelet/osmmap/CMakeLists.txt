@@ -198,6 +198,16 @@ add_library(map_lib
     src/plan/rs_path.cpp
     src/plan/hybidacore.cpp
     src/smoother/reference_path_smoother.cpp
+    src/smoother/planning_gflags.cc
+    src/smoother/piecewise_jerk_problem.cc
+    src/smoother/piecewise_jerk_path_problem.cc
+    #src/smoother/piecewise_jerk_speed_problem.cc
+    src/navagation/navagation.cpp
+    src/navagation/navagation_gnss.cpp
+    src/navagation/navagation_pcd.cpp
+    src/navagation/navagation_sim.cpp
+    src/navagation/navagation_pure.cpp
+    src/navagation/navagation_optimizer.cpp
 )
 target_link_libraries(map_lib glog gflags xmlio_lib ${catkin_LIBRARIES} OsqpEigen::OsqpEigen)
 
@@ -207,12 +217,16 @@ add_library(geographicLib
     GeographicLib/Math.cpp
 )
 
-add_executable(mapio src/main.cpp)
-target_link_libraries(mapio map_lib geographicLib)
-add_dependencies(mapio ${PROJECT_NAME}_gencpp fsd_common_msgs_gencpp)
+add_executable(navagation_node src/main.cpp)
+target_link_libraries(navagation_node map_lib geographicLib)
+add_dependencies(navagation_node ${PROJECT_NAME}_gencpp fsd_common_msgs_gencpp)
 
 add_executable(math_test src/plan/math_test.cpp src/plan/math.cpp)
 target_link_libraries(math_test ${catkin_LIBRARIES})
+
+add_executable(tf_pub src/tf_pub.cpp)
+target_link_libraries(tf_pub map_lib)
+#add_dependencies(tf_pub ${PROJECT_NAME}_gencpp fsd_common_msgs_gencpp)
 
 #############
 ## Install ##

@@ -165,7 +165,7 @@ add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_gencfg)
 target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES})
 
 add_executable(radar_calibration src/radar_esr_node.cpp src/radar_esr.cpp)
-add_dependencies(radar_calibration darknet_ros_msgs_gencpp can_msgs_gencpp)
+add_dependencies(radar_calibration darknet_ros_msgs_gencpp )#can_msgs_gencpp)
 target_link_libraries(radar_calibration ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
 #############

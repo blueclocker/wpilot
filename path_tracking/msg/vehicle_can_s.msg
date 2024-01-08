@@ -1,0 +1,9 @@
+float32 Enable
+float32 Steering_valid
+float32 DBS_valid
+float32 Acc_valid
+float32 Gear_request
+float32 Tir_speed_cmd
+float32 Tir_angle_cmd
+float32 BrakePressure_cmd
+float32 Acc_cmd
