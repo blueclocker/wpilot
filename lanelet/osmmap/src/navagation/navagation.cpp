@@ -160,8 +160,8 @@ void NavagationBase::PushCenterPoint(const std::vector<int> &pathid)
     smoothpathnode_.clear();
     if(pathid.empty()) return;
 
-    smoothpathnode_.push_back(map::centerway::CenterPoint3D(*atnowpoint_));
-    map::centerway::CenterPoint3D pre_centerway_point = smoothpathnode_.back();
+    // 输出起点前一个路点到终点后一个路点
+    map::centerway::CenterPoint3D pre_centerway_point;
     double accumulatelength = 0;
     for(int i = 0; i < pathid.size(); ++i)
     {
@@ -169,31 +169,25 @@ void NavagationBase::PushCenterPoint(const std::vector<int> &pathid)
 
         int j = 0;
         if(i == 0) while(j < oneway->length_ - 1 && oneway->centernodeline_[j] != start_centerpoint_id_) j++;
+        if(i == 0 && j > 0) --j;
         for(; j < oneway->length_ - 1; ++j)
         {
             smoothpathnode_.push_back(*centerwaysptr_->FindCenterPoint(oneway->centernodeline_[j]));
-            if(smoothpathnode_.size() == 2)
+            if(smoothpathnode_.size() > 1)
             {
-                smoothpathnode_[0].ele_ = smoothpathnode_[1].ele_;
-                pre_centerway_point.ele_ = smoothpathnode_[1].ele_;
+                accumulatelength += centerwaysptr_->NodeDistance2D(&pre_centerway_point, &smoothpathnode_.back());
             }
-            //截取100米
-            accumulatelength += centerwaysptr_->NodeDistance2D(&pre_centerway_point, &smoothpathnode_.back());
             pre_centerway_point = smoothpathnode_.back();
             if(accumulatelength > 100) break;
-            if(i == pathid.size() - 1 && oneway->centernodeline_[j] == end_centerpoint_id_) break;
+            if(i == pathid.size() - 1 && oneway->centernodeline_[j+1] == end_centerpoint_id_) 
+            {
+                smoothpathnode_.push_back(*centerwaysptr_->FindCenterPoint(oneway->centernodeline_[j+1]));
+                std::cout << "last append" << std::endl;
+                break;
+            }
         }
         if(accumulatelength > 100) break;
     }
-
-    //对终点、起点后处理
-    if(accumulatelength < 100)
-    {
-        smoothpathnode_.erase(smoothpathnode_.end());
-        smoothpathnode_.push_back(map::centerway::CenterPoint3D(end_state_[0], end_state_[1]));
-        smoothpathnode_.back().ele_ = smoothpathnode_[1].ele_;
-    }
-    if(smoothpathnode_.size() >= 3) smoothpathnode_.erase(smoothpathnode_.begin()+1);
 }
 
 void NavagationBase::OutMapPlan(const map::centerway::CenterPoint3D &atnow_centerpoint, const double heading)
