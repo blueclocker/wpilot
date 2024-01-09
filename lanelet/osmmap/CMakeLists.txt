@@ -231,6 +231,21 @@ target_link_libraries(tf_pub map_lib)
 add_executable(perfect_control src/perfect_control_main.cpp)
 target_link_libraries(perfect_control ${catkin_LIBRARIES})
 
+add_library(optimizer_lib
+  src/optimizer/aabox2d.cc
+  src/optimizer/box2d.cc
+  src/optimizer/line_segment2d.cc
+  src/optimizer/math_utils.cc
+  src/optimizer/polygon2d.cc
+  src/optimizer/vec2d.cc
+  src/optimizer/data_struct.cpp
+  src/optimizer/optimizer.cpp
+)
+target_link_libraries(optimizer_lib glog gflags ${catkin_LIBRARIES})
+
+add_executable(path_optimizer src/optimizer/optimizer_main.cpp)
+target_link_libraries(path_optimizer optimizer_lib)
+
 #############
 ## Install ##
 #############
