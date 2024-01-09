@@ -22,6 +22,10 @@ void trajectoryCallback(const visualization_msgs::Marker::ConstPtr &msg)
     ROS_INFO("Received current path ...");
     next_position[4] = 0;
     if(msg->points.size() < 2) return;
+    double remain_dis = std::sqrt((msg->points.back().x-current_position[0])*(msg->points.back().x-current_position[0])+
+                                  (msg->points.back().y-current_position[1])*(msg->points.back().y-current_position[1]));
+    if(remain_dis < 0.1) return;
+
     double lookahead = current_position[4];
     if(lookahead < 2.0) lookahead = 2.0;
 
