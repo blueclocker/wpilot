@@ -305,9 +305,11 @@ double UnionPlanner::TrajCost(std::shared_ptr<Node3d> current_node,
     // if (current_node->GetDirec() != next_node->GetDirec()) {
     //     piecewise_cost += traj_gear_switch_penalty_;
     // }
-    piecewise_cost += traj_steer_penalty_ * std::abs(next_node->GetSteer());
+    piecewise_cost += traj_steer_penalty_ * std::fabs(next_node->GetSteer());
     piecewise_cost += traj_steer_change_penalty_ *
-                        std::abs(next_node->GetSteer() - current_node->GetSteer());
+                        std::fabs(next_node->GetSteer() - current_node->GetSteer());
+    piecewise_cost += traj_v_change_penalty_ * 
+                        std::fabs(next_node->GetV() - current_node->GetV());
     return piecewise_cost;
 }
 
