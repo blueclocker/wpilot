@@ -20,6 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Eigen3 REQUIRED)
 find_package(gflags REQUIRED)
 find_package(OsqpEigen REQUIRED)
+find_package(absl REQUIRED)
 #find_package(PCL REQUIRED)
 #find_package(OpenMP QUIET)
 #if (OpenMP_FOUND)
@@ -139,6 +140,7 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIR}
+  ${absl_INCLUDE_DIRS}
   #${PCL_INCLUDE_DIRS}
   #${OpenMP_CXX_INCLUDE_DIRS}
 )
@@ -241,7 +243,7 @@ add_library(optimizer_lib
   src/optimizer/data_struct.cpp
   src/optimizer/optimizer.cpp
 )
-target_link_libraries(optimizer_lib glog gflags ${catkin_LIBRARIES})
+target_link_libraries(optimizer_lib glog gflags ${catkin_LIBRARIES} absl::strings)
 
 add_executable(path_optimizer src/optimizer/optimizer_main.cpp)
 target_link_libraries(path_optimizer optimizer_lib)
