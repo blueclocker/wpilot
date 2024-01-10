@@ -75,7 +75,7 @@ void visualizationPath(optimizer::PlannerResult &path)
     m.pose.orientation.w = 1.0;
     m.color.a = 1.0;
     m.color.b = 1.0;
-    m.scale.x = 0.2;
+    m.scale.x = 0.1;
     CHECK_EQ(path.x.size(), path.y.size());
     // CHECK_EQ(path.x.size(), path.phi.size());
 
@@ -96,7 +96,7 @@ void visualizationPath(optimizer::PlannerResult &path)
     visualization_msgs::Marker path_point;
     path_point.header.frame_id = "map";
     path_point.header.stamp = ros::Time::now();
-    path_point.type = visualization_msgs::Marker::POINTS;
+    path_point.type = visualization_msgs::Marker::SPHERE_LIST;
     path_point.action = visualization_msgs::Marker::ADD;
     // vehicle.id = static_cast<int>(i / vehicle_interval);
     path_point.ns = "path_points";
