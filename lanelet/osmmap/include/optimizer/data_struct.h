@@ -23,8 +23,8 @@ struct VehicleParam {
   double left_edge_to_center = 1.055;
   double right_edge_to_center = 1.055;
 
-  double length = 4.933;
-  double width = 2.11;
+  double length = 4.933;//4.933
+  double width = 2.11;//2.11
   double height = 1.48;
 
   double min_turn_radius = 5.05386147161;
@@ -62,17 +62,15 @@ struct WarmStartConfig {
   double phi_grid_resolution = 0.1;//0.05
   u_int64_t next_node_num = 7;//10
   double step_size = 0.5;
-  // double traj_forward_penalty = 0;//0
-  // double traj_back_penalty = 10.0;//0
-  // double traj_gear_switch_penalty = 100.0;//10
-  double traj_steer_penalty = 30.0;//100
+
+  double traj_steer_penalty = 20.0;//100
   double traj_steer_change_penalty = 20.0;//10
-  double traj_v_penalty = 30.0;
+  double traj_v_penalty = 10.0;
   double traj_v_change_penalty = 20.0;
-  double traj_phi_penalty = 10.0;
   double traj_l_penalty = 30.0;
   double traj_s_penalty = 10.0;
 
+  double heu_phi_penalty = 10.0;
   double heu_remain_distance_penalty = 10.0;
   double heu_l_diff_penalty = 20.0;
   // Grid a star for heuristic
