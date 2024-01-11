@@ -25,7 +25,7 @@ optimizer::PlannerOpenSpaceConfig planner_open_space_config_;
 std::unique_ptr<optimizer::UnionPlanner> hybrid_test_ = 
 std::unique_ptr<optimizer::UnionPlanner>(new optimizer::UnionPlanner(planner_open_space_config_));
 // std::vector<double> XYbounds{0.0, 80.0, 0.0, 50.0};
-std::vector<double> XYbounds{0.0, 50.0, -2.0, 2.0};
+std::vector<double> XYbounds{0.0, 50.0, -4.0, 4.0};
 std::vector<std::vector<optimizer::Vec2d>> obstacles_list;
 std::vector<optimizer::Vec2d> globalpath;
 std::vector<double> start_state(5); //x, y, z, yaw, v
@@ -263,11 +263,11 @@ void setCruise()
     ROS_INFO("set obstacles!");
     obstacles_list.clear();
     std::vector<optimizer::Vec2d> a_obstacle;
-    a_obstacle.emplace_back(0.0, -2.0);
-    a_obstacle.emplace_back(50.0, -2.0);
-    a_obstacle.emplace_back(50.0, 2.0);
-    a_obstacle.emplace_back(0.0, 2.0);
-    a_obstacle.emplace_back(0.0, -2.0);
+    a_obstacle.emplace_back(20.0, -1.0);
+    a_obstacle.emplace_back(25.0, -1.0);
+    a_obstacle.emplace_back(25.0, 1.0);
+    a_obstacle.emplace_back(20.0, 1.0);
+    a_obstacle.emplace_back(20.0, -1.0);
     obstacles_list.emplace_back(a_obstacle);
 }
 
@@ -763,6 +763,7 @@ int main(int argc, char **argv)
     ros::Subscriber globalpath_sub = nh.subscribe("/navagation_node/golbalpath_info", 1, PathCallback);
 
     // setObs();
+    setCruise();
     setGlobalpath();
     ros::Rate r(10);
     while(nh.ok()){
