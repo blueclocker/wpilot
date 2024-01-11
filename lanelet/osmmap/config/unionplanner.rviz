@@ -52,19 +52,19 @@ Visualization Manager:
       Value: true
     - Alpha: 1
       Class: rviz/Axes
-      Enabled: false
-      Length: 3
+      Enabled: true
+      Length: 30
       Name: Axes
       Radius: 0.20000000298023224
       Reference Frame: map
       Show Trail: false
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /path_optimizer/obsmarkers
       Name: MarkerArray
       Namespaces:
-        obstacle: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -103,7 +103,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 87.91255187988281
+      Distance: 79.42472839355469
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -111,8 +111,8 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 38.626014709472656
-        Y: 3.528996467590332
+        X: 12.43183422088623
+        Y: -0.955843448638916
         Z: -1.9674660507007502e-05
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
@@ -140,4 +140,4 @@ Window Geometry:
     collapsed: true
   Width: 1169
   X: 381
-  Y: 46
+  Y: 27

@@ -21,23 +21,26 @@ UnionPlanner::UnionPlanner(const PlannerOpenSpaceConfig& open_space_conf)
     xy_grid_resolution_ =
         planner_open_space_config_.warm_start_config.xy_grid_resolution;
     delta_t_ = planner_open_space_config_.delta_t;
-    traj_forward_penalty_ =
-        planner_open_space_config_.warm_start_config.traj_forward_penalty;
-    traj_back_penalty_ =
-        planner_open_space_config_.warm_start_config.traj_back_penalty;
-    traj_gear_switch_penalty_ =
-        planner_open_space_config_.warm_start_config.traj_gear_switch_penalty;
+
     traj_steer_penalty_ =
         planner_open_space_config_.warm_start_config.traj_steer_penalty;
     traj_steer_change_penalty_ = 
         planner_open_space_config_.warm_start_config.traj_steer_change_penalty;
     traj_v_change_penalty_ = 
         planner_open_space_config_.warm_start_config.traj_v_change_penalty;
+    traj_l_penalty_ = 
+        planner_open_space_config_.warm_start_config.traj_l_penalty;
+
+    heu_remain_distance_penalty_ = 
+        planner_open_space_config_.warm_start_config.heu_remain_distance_penalty;
+    heu_l_diff_penalty_ = 
+        planner_open_space_config_.warm_start_config.heu_l_diff_penalty;
 }
 
 bool UnionPlanner::Plan(double sx, double sy, double sphi, double sv, double ex, double ey,
                         double ephi, const std::vector<double>& XYbounds,
                         const std::vector<std::vector<Vec2d>>& obstacles_vertices_vec,
+                        const std::vector<Vec2d>& globalpath_vec,
                         PlannerResult* result)
 {
     // clear containers
@@ -59,13 +62,21 @@ bool UnionPlanner::Plan(double sx, double sy, double sphi, double sv, double ex,
     }
     obstacles_linesegments_vec_ = std::move(obstacles_linesegments_vec);
 
+    std::vector<Vec2d> globalpath;
+    for(const auto& node : globalpath_vec){
+        globalpath.push_back(node);
+    }
+    globalpath_ = std::move(globalpath);
+
     // load XYbounds
     XYbounds_ = XYbounds;
     // load nodes and obstacles
     start_node_.reset(
         new Node3d({sx}, {sy}, {sphi}, {sv}, {0}, XYbounds_, planner_open_space_config_));
+    start_node_->SetSL(globalpath_);
     end_node_.reset(
         new Node3d({ex}, {ey}, {ephi}, {0}, {0}, XYbounds_, planner_open_space_config_));
+    end_node_->SetSL(globalpath_);
     if (!ValidityCheck(start_node_)) {
         std::cout << "start_node in collision with obstacles" << std::endl;
         return false;
@@ -274,6 +285,7 @@ std::shared_ptr<Node3d> UnionPlanner::Next_node_generator(
         new Node3d(next_x, next_y, next_phi, next_v, steering, XYbounds_,
                     planner_open_space_config_));
     next_node->SetPre(current_node);
+    next_node->SetSL(globalpath_);
     // next_node->SetDirec(traveled_distance > 0.0);
     // next_node->SetSteer(steering);
     return next_node;
@@ -310,14 +322,17 @@ double UnionPlanner::TrajCost(std::shared_ptr<Node3d> current_node,
                         std::fabs(next_node->GetSteer() - current_node->GetSteer());
     piecewise_cost += traj_v_change_penalty_ * 
                         std::fabs(next_node->GetV() - current_node->GetV());
+    piecewise_cost += traj_l_penalty_ * std::fabs(next_node->GetL());
     return piecewise_cost;
 }
 
 double UnionPlanner::HoloObstacleHeuristic(std::shared_ptr<Node3d> next_node)
 {
-    double h;
+    double h = 0.0;
     // h = std::fabs(next_node->GetX() - end_node_->GetX()) + std::fabs(next_node->GetY() - end_node_->GetY());
-    h = std::sqrt(std::pow(next_node->GetX() - end_node_->GetX(), 2) + std::pow(next_node->GetY() - end_node_->GetY(), 2));
+    // h = std::sqrt(std::pow(next_node->GetX() - end_node_->GetX(), 2) + std::pow(next_node->GetY() - end_node_->GetY(), 2));
+    h += heu_remain_distance_penalty_ * std::fabs(50.0 - next_node->GetS());
+    h += heu_l_diff_penalty_ * std::fabs(next_node->GetL());
     return h;
 }
 

@@ -5,6 +5,8 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <tf/tf.h>
+#include <nav_msgs/Odometry.h>
+#include "osmmap/cubic_spline.h"
 
 // 变量
 ros::Publisher obs_pub;
@@ -22,8 +24,11 @@ optimizer::PlannerResult result;
 optimizer::PlannerOpenSpaceConfig planner_open_space_config_;
 std::unique_ptr<optimizer::UnionPlanner> hybrid_test_ = 
 std::unique_ptr<optimizer::UnionPlanner>(new optimizer::UnionPlanner(planner_open_space_config_));
-std::vector<double> XYbounds{0.0, 80.0, 0.0, 50.0};
+// std::vector<double> XYbounds{0.0, 80.0, 0.0, 50.0};
+std::vector<double> XYbounds{0.0, 50.0, -2.0, 2.0};
 std::vector<std::vector<optimizer::Vec2d>> obstacles_list;
+std::vector<optimizer::Vec2d> globalpath;
+std::vector<double> start_state(5); //x, y, z, yaw, v
 
 
 void visualizationObstacles(const std::vector<std::vector<optimizer::Vec2d>> &obstacles_lists)
@@ -140,7 +145,8 @@ void StartpointCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr
     {
         ROS_INFO("start plan ...");
         result.clear();
-        bool find = hybrid_test_->Plan(sx, sy, sphi, 0.0, ex, ey, ephi, XYbounds, obstacles_list, &result);
+        bool find = hybrid_test_->Plan(sx, sy, sphi, 0.0, ex, ey, ephi, 
+                                       XYbounds, obstacles_list, globalpath, &result);
         if(!find) return;
         std::cout << "the number of find path is " << result.x.size() << std::endl;
         visualizationPath(result);
@@ -171,7 +177,8 @@ void GoalpointCallback(const geometry_msgs::PoseStamped::ConstPtr &msg)
     {
         ROS_INFO("start plan ...");
         result.clear();
-        bool find = hybrid_test_->Plan(sx, sy, sphi, 0.0, ex, ey, ephi, XYbounds, obstacles_list, &result);
+        bool find = hybrid_test_->Plan(sx, sy, sphi, 0.0, ex, ey, ephi, 
+                                       XYbounds, obstacles_list, globalpath, &result);
         if(!find) return;
         std::cout << "the number of find path is " << result.x.size() << std::endl;
         visualizationPath(result);
@@ -188,6 +195,80 @@ void GoalpointCallback(const geometry_msgs::PoseStamped::ConstPtr &msg)
         //     ros::Duration(0.05).sleep();
         // }
     }
+}
+
+void PathCallback(const visualization_msgs::Marker::ConstPtr &msg)
+{
+    ROS_INFO("Received current path ...");
+    globalpath.clear();
+
+    for(int i = 0; i < msg->points.size(); ++i)
+    {
+        globalpath.emplace_back(msg->points[i].x, msg->points[i].y);
+    }
+}
+
+void odomCallback(const nav_msgs::Odometry::ConstPtr &msg)
+{
+    ROS_INFO("Received current odometry in trajectory controller ...");
+    std::vector<double> current_pose(3);     // x, y, yaw
+    std::vector<double> current_velocity(3); // vx, vy, magnitude
+    double current_z = 0;
+
+    geometry_msgs::Quaternion geo_quat = msg->pose.pose.orientation;
+
+    // the incoming geometry_msgs::Quaternion is transformed to a tf::Quaterion
+    tf::Quaternion quat;
+    tf::quaternionMsgToTF(geo_quat, quat);
+
+    // the tf::Quaternion has a method to acess roll pitch and yaw
+    double roll, pitch, yaw;
+    tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
+
+    current_pose[0] = msg->pose.pose.position.x;
+    current_pose[1] = msg->pose.pose.position.y;
+    current_pose[2] = yaw;
+
+    current_velocity[0] = msg->twist.twist.linear.x;
+    current_velocity[1] = msg->twist.twist.linear.y;
+    current_velocity[2] = std::hypot(current_velocity[0], current_velocity[1]);
+
+    current_z = msg->pose.pose.position.z;
+
+    start_state[0] = current_pose[0];
+    start_state[1] = current_pose[1];
+    start_state[2] = current_z;
+    start_state[3] = current_pose[2];
+    start_state[4] = current_velocity[2];
+}
+
+void setGlobalpath()
+{
+    globalpath.clear();
+    std::vector<map::centerway::CenterPoint3D> pathnode;
+    for(double i = 0.0; i < 51; i += 5.0){
+        pathnode.emplace_back(i, 0.0);
+    }
+    plan::Spline2D csp_obj(pathnode);
+    for(double i = 0; i < csp_obj.s.back(); i += 0.2)
+    {
+        std::array<double, 3> point = csp_obj.calc_postion(i);
+        globalpath.emplace_back(point[0], point[1]);
+    }
+    //
+}
+
+void setCruise()
+{
+    ROS_INFO("set obstacles!");
+    obstacles_list.clear();
+    std::vector<optimizer::Vec2d> a_obstacle;
+    a_obstacle.emplace_back(0.0, -2.0);
+    a_obstacle.emplace_back(50.0, -2.0);
+    a_obstacle.emplace_back(50.0, 2.0);
+    a_obstacle.emplace_back(0.0, 2.0);
+    a_obstacle.emplace_back(0.0, -2.0);
+    obstacles_list.emplace_back(a_obstacle);
 }
 
 void setObs()
@@ -677,9 +758,12 @@ int main(int argc, char **argv)
     obs_pub = nh.advertise<visualization_msgs::MarkerArray>("obsmarkers", 1);
     path_pub = nh.advertise<visualization_msgs::MarkerArray>("path", 1);
     ros::Subscriber startpoint_sub = nh.subscribe("/initialpose", 1, StartpointCallback);
+    ros::Subscriber odom_sub = nh.subscribe("/carla/ego_vehicle/odometry", 1, odomCallback);
     ros::Subscriber goalpoint_sub = nh.subscribe("/move_base_simple/goal", 1, GoalpointCallback);
+    ros::Subscriber globalpath_sub = nh.subscribe("/navagation_node/golbalpath_info", 1, PathCallback);
 
-    setObs();
+    // setObs();
+    setGlobalpath();
     ros::Rate r(10);
     while(nh.ok()){
         ros::spinOnce();

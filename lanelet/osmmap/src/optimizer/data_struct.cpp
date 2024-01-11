@@ -56,5 +56,27 @@ std::string Node3d::ComputeStringIndex(int x_grid, int y_grid, int phi_grid) {
   return absl::StrCat(x_grid, "_", y_grid, "_", phi_grid);
 }
 
+void Node3d::SetSL(const std::vector<Vec2d> &globalpath)
+{
+  if(globalpath.empty()) return;
+
+  double dis = std::numeric_limits<double>::max();
+  Vec2d current_node = Vec2d(x_, y_);
+  int count = 0;
+  for(const auto& node : globalpath)
+  {
+    double current_dis = current_node.DistanceTo(node);
+    if(current_dis < dis){
+      dis = current_dis;
+      count++;
+    }else{
+      break;
+    }
+  }
+  l_ = dis;
+  s_ = count * 0.2;
+  std::cout << "node s: " << s_ << ", l: " << l_ << std::endl;
+}
+
 
 }//namespace optimizer

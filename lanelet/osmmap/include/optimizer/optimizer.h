@@ -38,22 +38,18 @@ private:
     double step_size_ = 0.0;
     double xy_grid_resolution_ = 0.0;
     double delta_t_ = 0.0;
-    double traj_forward_penalty_ = 0.0;
-    double traj_back_penalty_ = 0.0;
-    double traj_gear_switch_penalty_ = 0.0;
     double traj_steer_penalty_ = 0.0;
     double traj_steer_change_penalty_ = 0.0;
     double traj_v_change_penalty_ = 0.0;
-    double heu_rs_forward_penalty_ = 0.0;
-    double heu_rs_back_penalty_ = 0.0;
-    double heu_rs_gear_switch_penalty_ = 0.0;
-    double heu_rs_steer_penalty_ = 0.0;
-    double heu_rs_steer_change_penalty_ = 0.0;
+    double traj_l_penalty_ = 0.0;
+    double heu_remain_distance_penalty_ = 0.0;
+    double heu_l_diff_penalty_ = 0.0;
     std::vector<double> XYbounds_;
     std::shared_ptr<Node3d> start_node_;
     std::shared_ptr<Node3d> end_node_;
     std::shared_ptr<Node3d> final_node_;
     std::vector<std::vector<LineSegment2d>> obstacles_linesegments_vec_;
+    std::vector<Vec2d> globalpath_;
 
     struct cmp {
         bool operator()(const std::pair<std::string, double>& left,
@@ -88,6 +84,7 @@ public:
     bool Plan(double sx, double sy, double sphi, double sv, double ex, double ey,
             double ephi, const std::vector<double>& XYbounds,
             const std::vector<std::vector<Vec2d>>& obstacles_vertices_vec,
+            const std::vector<Vec2d>& globalpath_vec,
             PlannerResult* result);
 };
 

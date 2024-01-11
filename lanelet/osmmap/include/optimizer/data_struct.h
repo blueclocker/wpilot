@@ -62,12 +62,16 @@ struct WarmStartConfig {
   double phi_grid_resolution = 0.1;//0.05
   u_int64_t next_node_num = 7;//10
   double step_size = 0.5;
-  double traj_forward_penalty = 0;//0
-  double traj_back_penalty = 10.0;//0
-  double traj_gear_switch_penalty = 100.0;//10
+  // double traj_forward_penalty = 0;//0
+  // double traj_back_penalty = 10.0;//0
+  // double traj_gear_switch_penalty = 100.0;//10
   double traj_steer_penalty = 10.0;//100
   double traj_steer_change_penalty = 10.0;//10
   double traj_v_change_penalty = 5.0;
+  double traj_l_penalty = 100.0;
+
+  double heu_remain_distance_penalty = 10.0;
+  double heu_l_diff_penalty = 20.0;
   // Grid a star for heuristic
   double grid_a_star_xy_resolution = 0.1;
   double node_radius = 0.5;
@@ -103,6 +107,8 @@ class Node3d {
   double GetY() const { return y_; }
   double GetPhi() const { return phi_; }
   double GetV() const {return v_;}
+  double GetS() const {return s_;}
+  double GetL() const {return l_;}
   bool operator==(const Node3d& right) const;
   const std::string& GetIndex() const { return index_; }
   // size_t GetStepSize() const { return step_size_; }
@@ -114,6 +120,7 @@ class Node3d {
   void SetTrajCost(double cost) { traj_cost_ = cost; }
   void SetHeuCost(double cost) { heuristic_cost_ = cost; }
   // void SetSteer(double steering) { steering_ = steering; }
+  void SetSL(const std::vector<Vec2d> &globalpath);
 
  private:
   static std::string ComputeStringIndex(int x_grid, int y_grid, int phi_grid);
@@ -124,6 +131,8 @@ class Node3d {
   double phi_ = 0.0;//rad
   double v_ = 0.0;//m/s
   double steering_ = 0.0;//rad
+  double s_ = 0.0;
+  double l_ = 0.0;
 
   // size_t step_size_ = 1;
   int x_grid_ = 0;
