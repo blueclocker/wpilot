@@ -8,6 +8,7 @@
 #include <nav_msgs/Odometry.h>
 #include "osmmap/cubic_spline.h"
 #include "osmmap/Pathpoints.h"
+#include <fstream>
 
 // 变量
 ros::Publisher obs_pub;
@@ -193,23 +194,41 @@ void PubResult()
 {
     osmmap::Pathpoints content;
     content.header.frame_id = "result";
-    ros::Rate r(10);
-    for(int i = 0; i < result.x.size(); ++i)
+    std::string file_path = "/home/wp/wpollo/src/lanelet/osmmap/result.csv";
+    std::ofstream outFile(file_path, std::ios::out);
+    if (outFile.is_open())
     {
-        content.header.stamp = ros::Time::now();
-        content.x = result.x[i];
-        content.y = result.y[i];
-        content.phi = result.phi[i];
-        content.v = result.v[i];
-        content.steer = result.steer[i];
-        if(i+1 < result.x.size()){
-            content.a = result.v[i+1] - result.v[i];
-        }else{
-            content.a = result.v[i] - result.v[i-1]; 
-        }
+        outFile << "time," <<
+                "x," <<
+                "y," <<
+                "phi," <<
+                "v," <<
+                "steer," <<
+                "a" << std::endl;
+        for(int i = 0; i < result.x.size(); ++i)
+        {
+            content.header.stamp = ros::Time::now();
+            content.x = result.x[i];
+            content.y = result.y[i];
+            content.phi = result.phi[i];
+            content.v = result.v[i];
+            content.steer = result.steer[i];
+            if(i+1 < result.x.size()){
+                content.a = result.v[i+1] - result.v[i];
+            }else{
+                content.a = result.v[i] - result.v[i-1]; 
+            }
+            outFile << std::to_string(i) << "," <<
+                       std::to_string(content.x) << "," <<
+                       std::to_string(content.y) << "," <<
+                       std::to_string(content.phi) << "," <<
+                       std::to_string(content.v) << "," <<
+                       std::to_string(content.steer) << "," <<
+                       std::to_string(content.a) << std::endl;
 
-        result_pub.publish(content);
-        r.sleep();
+            result_pub.publish(content);
+        }
+        outFile.close();
     }
 }
 
