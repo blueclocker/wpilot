@@ -72,14 +72,16 @@ Visualization Manager:
       Marker Topic: /path_optimizer/path
       Name: MarkerArray
       Namespaces:
-        {}
+        path: true
+        path_points: true
+        vehicle: true
       Queue Size: 100
       Value: true
     - Alpha: 1
       Axes Length: 1
       Axes Radius: 0.10000000149011612
       Class: rviz/PoseWithCovariance
-      Color: 255; 25; 0
+      Color: 138; 226; 52
       Covariance:
         Orientation:
           Alpha: 0.5
@@ -96,12 +98,12 @@ Visualization Manager:
           Value: true
         Value: true
       Enabled: true
-      Head Length: 0.30000001192092896
-      Head Radius: 0.10000000149011612
+      Head Length: 1
+      Head Radius: 0.5
       Name: PoseWithCovariance
       Queue Size: 10
-      Shaft Length: 1
-      Shaft Radius: 0.05000000074505806
+      Shaft Length: 2
+      Shaft Radius: 0.25
       Shape: Arrow
       Topic: /initialpose
       Unreliable: false
@@ -112,12 +114,12 @@ Visualization Manager:
       Class: rviz/Pose
       Color: 255; 25; 0
       Enabled: true
-      Head Length: 0.30000001192092896
-      Head Radius: 0.10000000149011612
+      Head Length: 1
+      Head Radius: 0.5
       Name: Pose
       Queue Size: 10
-      Shaft Length: 1
-      Shaft Radius: 0.05000000074505806
+      Shaft Length: 2
+      Shaft Radius: 0.25
       Shape: Arrow
       Topic: /move_base_simple/goal
       Unreliable: false
@@ -158,7 +160,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 49.527732849121094
+      Distance: 42.72468566894531
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -166,17 +168,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 27.534420013427734
-        Y: -4.405148983001709
+        X: 26.144895553588867
+        Y: -1.8239028453826904
         Z: -2.431670145597309e-05
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.544796347618103
+      Pitch: 1.5497963428497314
       Target Frame: base_link
-      Yaw: 4.707118511199951
+      Yaw: 4.712118625640869
     Saved: ~
 Window Geometry:
   Displays:
@@ -195,4 +197,4 @@ Window Geometry:
     collapsed: true
   Width: 1169
   X: 324
-  Y: 46
+  Y: 27

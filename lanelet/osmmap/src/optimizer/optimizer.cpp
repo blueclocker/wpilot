@@ -127,10 +127,13 @@ bool UnionPlanner::Plan(double sx, double sy, double sphi, double sv, double ex,
         // rs_time += rs_end_time - rs_start_time;
         close_set_.emplace(current_node->GetIndex(), current_node);
 
-        double start_travel_distance = std::max(sv * 0.1 - 2.0, 0.0);
-        double end_travle_distance = std::min(sv * 0.1 + 2.0, 5.0);;
+        double start_travel_distance = std::max(current_node->GetV() * 0.1 - 0.2, 0.0);
+        double end_travle_distance = std::min(current_node->GetV() * 0.1 + 0.2, 2.0);
+        // std::cout << "current node v: " << current_node->GetV() << std::endl;
+        // std::cout << "start travel distance: " << start_travel_distance << 
+        //              ", end travel distance: " << end_travle_distance << std::endl;
         for(double travle_dis = start_travel_distance; 
-            travle_dis <= end_travle_distance; travle_dis += 0.5)
+            travle_dis <= end_travle_distance; travle_dis += 0.05)
         {
             for (size_t i = 0; i < next_node_num_; ++i) 
             {
@@ -287,6 +290,7 @@ std::shared_ptr<Node3d> UnionPlanner::Next_node_generator(
         next_y < XYbounds_[2]) {
         return nullptr;
     }
+    // std::cout << "next v: " << next_v << std::endl;
     std::shared_ptr<Node3d> next_node = std::shared_ptr<Node3d>(
         new Node3d(next_x, next_y, next_phi, next_v, steering, XYbounds_,
                     planner_open_space_config_));
@@ -341,7 +345,7 @@ double UnionPlanner::HoloObstacleHeuristic(std::shared_ptr<Node3d> next_node)
     // h += std::sqrt(std::pow(next_node->GetX() - end_node_->GetX(), 2) + std::pow(next_node->GetY() - end_node_->GetY(), 2));
     h += heu_remain_distance_penalty_ * std::fabs(50.0 - next_node->GetS());
     // h += heu_l_diff_penalty_ * std::fabs(end_node_->GetL() - next_node->GetL());
-    // h += heu_phi_penalty_ * std::fabs(end_node_->GetPhi() - next_node->GetPhi());
+    h += heu_phi_penalty_ * std::fabs(end_node_->GetPhi() - next_node->GetPhi());
     return h;
 }
 
