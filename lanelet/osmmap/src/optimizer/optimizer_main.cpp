@@ -21,6 +21,7 @@ double ey;
 double ephi;
 bool has_start;
 bool has_end;
+optimizer::VehicleParam vehicle_param;
 optimizer::PlannerResult result;
 optimizer::PlannerOpenSpaceConfig planner_open_space_config_;
 std::unique_ptr<optimizer::UnionPlanner> hybrid_test_ = 
@@ -145,8 +146,9 @@ void visualizationPath(optimizer::PlannerResult &path)
     vehicle.scale.z = 0.01;
     vehicle.color.a = 0.1;
     vehicle.color.r = 1.0;
-    vehicle.color.b = 1.0;
-    vehicle.color.g = 0.0;
+    double ego_length = vehicle_param.length;
+    double shift_distance =
+        ego_length / 2.0 - vehicle_param.back_edge_to_center;
 
     visualization_msgs::Marker path_point;
     path_point.header.frame_id = "map";
@@ -171,8 +173,8 @@ void visualizationPath(optimizer::PlannerResult &path)
         path_point.points.push_back(a);
 
         vehicle.id = i;
-        vehicle.pose.position.x = a.x;
-        vehicle.pose.position.y = a.y;
+        vehicle.pose.position.x = a.x + shift_distance * cos(path.phi[i]);
+        vehicle.pose.position.y = a.y + shift_distance * sin(path.phi[i]);
         vehicle.pose.position.z = 0.0;
         vehicle.pose.orientation = tf::createQuaternionMsgFromYaw(path.phi[i]);
         paths.markers.push_back(vehicle);
@@ -289,11 +291,11 @@ void setCruise()
     ROS_INFO("set obstacles!");
     obstacles_list.clear();
     std::vector<optimizer::Vec2d> a_obstacle;
-    a_obstacle.emplace_back(20.0, -2.5);
-    a_obstacle.emplace_back(25.0, -2.5);
-    a_obstacle.emplace_back(25.0, -0.5);
-    a_obstacle.emplace_back(20.0, -0.5);
-    a_obstacle.emplace_back(20.0, -2.5);
+    a_obstacle.emplace_back(20.0, -3.5);
+    a_obstacle.emplace_back(25.0, -3.5);
+    a_obstacle.emplace_back(25.0, -1.0);
+    a_obstacle.emplace_back(20.0, -1.0);
+    a_obstacle.emplace_back(20.0, -3.5);
     obstacles_list.emplace_back(a_obstacle);
 }
 
