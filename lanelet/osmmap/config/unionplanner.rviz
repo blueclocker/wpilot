@@ -36,7 +36,7 @@ Visualization Manager:
       Cell Size: 1
       Class: rviz/Grid
       Color: 160; 160; 164
-      Enabled: true
+      Enabled: false
       Line Style:
         Line Width: 0.029999999329447746
         Value: Lines
@@ -49,22 +49,22 @@ Visualization Manager:
       Plane: XY
       Plane Cell Count: 100
       Reference Frame: <Fixed Frame>
-      Value: true
+      Value: false
     - Alpha: 1
       Class: rviz/Axes
-      Enabled: true
+      Enabled: false
       Length: 30
       Name: Axes
       Radius: 0.20000000298023224
       Reference Frame: map
       Show Trail: false
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /path_optimizer/obsmarkers
       Name: MarkerArray
       Namespaces:
-        {}
+        obstacle: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -72,9 +72,7 @@ Visualization Manager:
       Marker Topic: /path_optimizer/path
       Name: MarkerArray
       Namespaces:
-        path: true
-        path_points: true
-        vehicle: true
+        {}
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -124,9 +122,17 @@ Visualization Manager:
       Topic: /move_base_simple/goal
       Unreliable: false
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /path_optimizer/map
+      Name: MarkerArray
+      Namespaces:
+        map: true
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
-    Background Color: 48; 48; 48
+    Background Color: 238; 238; 236
     Default Light: true
     Fixed Frame: map
     Frame Rate: 30
@@ -152,7 +158,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 24.219871520996094
+      Distance: 49.527732849121094
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -160,8 +166,8 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 10.619766235351562
-        Y: 0.34072667360305786
+        X: 27.534420013427734
+        Y: -4.405148983001709
         Z: -2.431670145597309e-05
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
@@ -188,5 +194,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1169
-  X: 381
-  Y: 27
+  X: 324
+  Y: 46

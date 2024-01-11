@@ -11,6 +11,7 @@
 // 变量
 ros::Publisher obs_pub;
 ros::Publisher path_pub;
+ros::Publisher map_pub;
 double sx;
 double sy;
 double sphi;
@@ -64,6 +65,55 @@ void visualizationObstacles(const std::vector<std::vector<optimizer::Vec2d>> &ob
     obs_pub.publish(obses);
 }
 
+void visualizationMap()
+{
+    visualization_msgs::MarkerArray map_markers;
+    visualization_msgs::Marker map_marker;
+    map_marker.header.frame_id = "map";
+    map_marker.header.stamp = ros::Time::now();
+    map_marker.action = visualization_msgs::Marker::ADD;
+    map_marker.type = visualization_msgs::Marker::LINE_STRIP;
+    map_marker.ns = "map";
+    // obs.lifetime = ros::Duration(0.1);
+    map_marker.pose.orientation.w = 1.0;
+    map_marker.color.a = 1.0;
+    map_marker.color.r = 0.0;
+    map_marker.scale.x = 0.2;
+    geometry_msgs::Point a;
+    
+    // 左边界
+    map_marker.id = 0;
+    a.x = XYbounds[0];
+    a.y = XYbounds[3];
+    map_marker.points.push_back(a);
+    a.x = XYbounds[1];
+    map_marker.points.push_back(a);
+    map_markers.markers.push_back(map_marker);
+
+    // 右边界
+    map_marker.id = 1;
+    a.x = XYbounds[0];
+    a.y = XYbounds[2];
+    map_marker.points.clear();
+    map_marker.points.push_back(a);
+    a.x = XYbounds[1];
+    map_marker.points.push_back(a);
+    map_markers.markers.push_back(map_marker);
+
+    // 中心线
+    map_marker.id = 2;
+    a.x = XYbounds[0];
+    a.y = (XYbounds[3] + XYbounds[2]) / 2.0;
+    map_marker.points.clear();
+    map_marker.scale.x = 0.1;
+    map_marker.points.push_back(a);
+    a.x = XYbounds[1];
+    map_marker.points.push_back(a);
+    map_markers.markers.push_back(map_marker);
+
+    map_pub.publish(map_markers);
+}
+
 void visualizationPath(optimizer::PlannerResult &path)
 {
     if(path.x.size() == 0) return;
@@ -79,7 +129,7 @@ void visualizationPath(optimizer::PlannerResult &path)
     m.id = 1;
     m.pose.orientation.w = 1.0;
     m.color.a = 1.0;
-    m.color.b = 1.0;
+    m.color.r = 1.0;
     m.scale.x = 0.1;
     CHECK_EQ(path.x.size(), path.y.size());
     // CHECK_EQ(path.x.size(), path.phi.size());
@@ -263,11 +313,11 @@ void setCruise()
     ROS_INFO("set obstacles!");
     obstacles_list.clear();
     std::vector<optimizer::Vec2d> a_obstacle;
-    a_obstacle.emplace_back(20.0, -1.0);
-    a_obstacle.emplace_back(25.0, -1.0);
-    a_obstacle.emplace_back(25.0, 1.0);
-    a_obstacle.emplace_back(20.0, 1.0);
-    a_obstacle.emplace_back(20.0, -1.0);
+    a_obstacle.emplace_back(20.0, -2.5);
+    a_obstacle.emplace_back(25.0, -2.5);
+    a_obstacle.emplace_back(25.0, -0.5);
+    a_obstacle.emplace_back(20.0, -0.5);
+    a_obstacle.emplace_back(20.0, -2.5);
     obstacles_list.emplace_back(a_obstacle);
 }
 
@@ -757,6 +807,7 @@ int main(int argc, char **argv)
     ros::NodeHandle nh("~");
     obs_pub = nh.advertise<visualization_msgs::MarkerArray>("obsmarkers", 1);
     path_pub = nh.advertise<visualization_msgs::MarkerArray>("path", 1);
+    map_pub = nh.advertise<visualization_msgs::MarkerArray>("map", 1);
     ros::Subscriber startpoint_sub = nh.subscribe("/initialpose", 1, StartpointCallback);
     ros::Subscriber odom_sub = nh.subscribe("/carla/ego_vehicle/odometry", 1, odomCallback);
     ros::Subscriber goalpoint_sub = nh.subscribe("/move_base_simple/goal", 1, GoalpointCallback);
@@ -769,6 +820,7 @@ int main(int argc, char **argv)
     while(nh.ok()){
         ros::spinOnce();
         visualizationObstacles(obstacles_list);
+        visualizationMap();
         r.sleep();
     }
     
