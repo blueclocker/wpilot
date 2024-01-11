@@ -30,6 +30,8 @@ UnionPlanner::UnionPlanner(const PlannerOpenSpaceConfig& open_space_conf)
         planner_open_space_config_.warm_start_config.traj_v_penalty;
     traj_v_change_penalty_ = 
         planner_open_space_config_.warm_start_config.traj_v_change_penalty;
+    traj_phi_penalty_ = 
+        planner_open_space_config_.warm_start_config.traj_phi_penalty;
     traj_l_penalty_ = 
         planner_open_space_config_.warm_start_config.traj_l_penalty;
     traj_s_penalty_ = 
@@ -336,9 +338,10 @@ double UnionPlanner::HoloObstacleHeuristic(std::shared_ptr<Node3d> next_node)
 {
     double h = 0.0;
     // h = std::fabs(next_node->GetX() - end_node_->GetX()) + std::fabs(next_node->GetY() - end_node_->GetY());
-    h += std::sqrt(std::pow(next_node->GetX() - end_node_->GetX(), 2) + std::pow(next_node->GetY() - end_node_->GetY(), 2));
+    // h += std::sqrt(std::pow(next_node->GetX() - end_node_->GetX(), 2) + std::pow(next_node->GetY() - end_node_->GetY(), 2));
     h += heu_remain_distance_penalty_ * std::fabs(50.0 - next_node->GetS());
     h += heu_l_diff_penalty_ * std::fabs(end_node_->GetL() - next_node->GetL());
+    h += traj_phi_penalty_ * std::fabs(end_node_->GetPhi() - next_node->GetPhi());
     return h;
 }
 

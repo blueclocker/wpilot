@@ -69,6 +69,7 @@ struct WarmStartConfig {
   double traj_steer_change_penalty = 20.0;//10
   double traj_v_penalty = 30.0;
   double traj_v_change_penalty = 20.0;
+  double traj_phi_penalty = 10.0;
   double traj_l_penalty = 30.0;
   double traj_s_penalty = 10.0;
 
