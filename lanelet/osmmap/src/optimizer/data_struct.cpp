@@ -75,7 +75,7 @@ void Node3d::SetSL(const std::vector<Vec2d> &globalpath)
   }
   l_ = dis;
   s_ = count * 0.2;
-  std::cout << "node s: " << s_ << ", l: " << l_ << std::endl;
+  // std::cout << "node s: " << s_ << ", l: " << l_ << std::endl;
 }
 
 
