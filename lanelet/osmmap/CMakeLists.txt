@@ -71,6 +71,7 @@ find_package(absl REQUIRED)
     Navigation.msg
     Regulatoryelement.msg
     CarState.msg
+    Pathpoints.msg
  )
 
 ## Generate services in the 'srv' folder

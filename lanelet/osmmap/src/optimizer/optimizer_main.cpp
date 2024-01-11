@@ -7,11 +7,13 @@
 #include <tf/tf.h>
 #include <nav_msgs/Odometry.h>
 #include "osmmap/cubic_spline.h"
+#include "osmmap/Pathpoints.h"
 
 // 变量
 ros::Publisher obs_pub;
 ros::Publisher path_pub;
 ros::Publisher map_pub;
+ros::Publisher result_pub;
 double sx;
 double sy;
 double sphi;
@@ -158,6 +160,8 @@ void visualizationPath(optimizer::PlannerResult &path)
     // vehicle.id = static_cast<int>(i / vehicle_interval);
     path_point.ns = "path_points";
     path_point.scale.x = 0.3;
+    path_point.scale.y = 0.3;
+    path_point.scale.z = 0.3;
     path_point.id = 1;
     path_point.pose.orientation.w = 1.0;
     path_point.color.r = 1.0;
@@ -185,6 +189,30 @@ void visualizationPath(optimizer::PlannerResult &path)
     path_pub.publish(paths);
 }
 
+void PubResult()
+{
+    osmmap::Pathpoints content;
+    content.header.frame_id = "result";
+    ros::Rate r(10);
+    for(int i = 0; i < result.x.size(); ++i)
+    {
+        content.header.stamp = ros::Time::now();
+        content.x = result.x[i];
+        content.y = result.y[i];
+        content.phi = result.phi[i];
+        content.v = result.v[i];
+        content.steer = result.steer[i];
+        if(i+1 < result.x.size()){
+            content.a = result.v[i+1] - result.v[i];
+        }else{
+            content.a = result.v[i] - result.v[i-1]; 
+        }
+
+        result_pub.publish(content);
+        r.sleep();
+    }
+}
+
 void StartpointCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
 {
     sx = msg->pose.pose.position.x;
@@ -202,6 +230,7 @@ void StartpointCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr
         if(!find) return;
         std::cout << "the number of find path is " << result.x.size() << std::endl;
         visualizationPath(result);
+        PubResult();
     }
 }
 
@@ -222,6 +251,7 @@ void GoalpointCallback(const geometry_msgs::PoseStamped::ConstPtr &msg)
         if(!find) return;
         std::cout << "the number of find path is " << result.x.size() << std::endl;
         visualizationPath(result);
+        PubResult();
     }
 }
 
@@ -293,8 +323,8 @@ void setCruise()
     std::vector<optimizer::Vec2d> a_obstacle;
     a_obstacle.emplace_back(20.0, -3.5);
     a_obstacle.emplace_back(25.0, -3.5);
-    a_obstacle.emplace_back(25.0, -1.0);
-    a_obstacle.emplace_back(20.0, -1.0);
+    a_obstacle.emplace_back(25.0, -0.5);
+    a_obstacle.emplace_back(20.0, -0.5);
     a_obstacle.emplace_back(20.0, -3.5);
     obstacles_list.emplace_back(a_obstacle);
 }
@@ -786,6 +816,7 @@ int main(int argc, char **argv)
     obs_pub = nh.advertise<visualization_msgs::MarkerArray>("obsmarkers", 1);
     path_pub = nh.advertise<visualization_msgs::MarkerArray>("path", 1);
     map_pub = nh.advertise<visualization_msgs::MarkerArray>("map", 1);
+    result_pub = nh.advertise<osmmap::Pathpoints>("result", 1);
     ros::Subscriber startpoint_sub = nh.subscribe("/initialpose", 1, StartpointCallback);
     ros::Subscriber odom_sub = nh.subscribe("/carla/ego_vehicle/odometry", 1, odomCallback);
     ros::Subscriber goalpoint_sub = nh.subscribe("/move_base_simple/goal", 1, GoalpointCallback);
