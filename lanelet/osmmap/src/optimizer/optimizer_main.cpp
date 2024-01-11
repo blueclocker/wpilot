@@ -44,8 +44,8 @@ void visualizationObstacles(const std::vector<std::vector<optimizer::Vec2d>> &ob
     // obs.lifetime = ros::Duration(0.1);
     obs.pose.orientation.w = 1.0;
     obs.color.a = 1.0;
-    obs.color.r = 1.0;
-    obs.scale.x = 0.1;
+    obs.color.r = 0.0;
+    obs.scale.x = 0.2;
     int index = 0;
     // obs.id = 1;
     for(auto p : obstacles_lists)
@@ -200,18 +200,6 @@ void StartpointCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr
         if(!find) return;
         std::cout << "the number of find path is " << result.x.size() << std::endl;
         visualizationPath(result);
-        // static tf::TransformBroadcaster transform_broadcaster;
-        // for (int i = 0; i < result_.x.size(); ++i) 
-        // {
-        //     tf::Transform transform;
-        //     transform.setOrigin(tf::Vector3(result_.x[i], result_.y[i], 0.0));
-        //     tf::Quaternion q;
-        //     q.setRPY(0, 0, result_.phi[i]);
-        //     transform.setRotation(q);
-        //     transform_broadcaster.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", "ground_link"));
-
-        //     ros::Duration(0.05).sleep();
-        // }
     }
 }
 
@@ -232,18 +220,6 @@ void GoalpointCallback(const geometry_msgs::PoseStamped::ConstPtr &msg)
         if(!find) return;
         std::cout << "the number of find path is " << result.x.size() << std::endl;
         visualizationPath(result);
-        // static tf::TransformBroadcaster transform_broadcaster;
-        // for (int i = 0; i < result_.x.size(); ++i) 
-        // {
-        //     tf::Transform transform;
-        //     transform.setOrigin(tf::Vector3(result_.x[i], result_.y[i], 0.0));
-        //     tf::Quaternion q;
-        //     q.setRPY(0, 0, result_.phi[i]);
-        //     transform.setRotation(q);
-        //     transform_broadcaster.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", "ground_link"));
-
-        //     ros::Duration(0.05).sleep();
-        // }
     }
 }
 
