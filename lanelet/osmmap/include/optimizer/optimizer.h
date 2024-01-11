@@ -40,8 +40,10 @@ private:
     double delta_t_ = 0.0;
     double traj_steer_penalty_ = 0.0;
     double traj_steer_change_penalty_ = 0.0;
+    double traj_v_penalty_ = 0.0;
     double traj_v_change_penalty_ = 0.0;
     double traj_l_penalty_ = 0.0;
+    double traj_s_penalty_ = 0.0;
     double heu_remain_distance_penalty_ = 0.0;
     double heu_l_diff_penalty_ = 0.0;
     std::vector<double> XYbounds_;

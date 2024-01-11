@@ -26,10 +26,14 @@ UnionPlanner::UnionPlanner(const PlannerOpenSpaceConfig& open_space_conf)
         planner_open_space_config_.warm_start_config.traj_steer_penalty;
     traj_steer_change_penalty_ = 
         planner_open_space_config_.warm_start_config.traj_steer_change_penalty;
+    traj_v_penalty_ = 
+        planner_open_space_config_.warm_start_config.traj_v_penalty;
     traj_v_change_penalty_ = 
         planner_open_space_config_.warm_start_config.traj_v_change_penalty;
     traj_l_penalty_ = 
         planner_open_space_config_.warm_start_config.traj_l_penalty;
+    traj_s_penalty_ = 
+        planner_open_space_config_.warm_start_config.traj_s_penalty;
 
     heu_remain_distance_penalty_ = 
         planner_open_space_config_.warm_start_config.heu_remain_distance_penalty;
@@ -320,9 +324,11 @@ double UnionPlanner::TrajCost(std::shared_ptr<Node3d> current_node,
     piecewise_cost += traj_steer_penalty_ * std::fabs(next_node->GetSteer());
     piecewise_cost += traj_steer_change_penalty_ *
                         std::fabs(next_node->GetSteer() - current_node->GetSteer());
+    piecewise_cost += traj_v_penalty_ * std::fabs(10.0 - next_node->GetV());
     piecewise_cost += traj_v_change_penalty_ * 
                         std::fabs(next_node->GetV() - current_node->GetV());
     piecewise_cost += traj_l_penalty_ * std::fabs(next_node->GetL());
+    piecewise_cost += traj_s_penalty_ * std::fabs(next_node->GetS());
     return piecewise_cost;
 }
 
@@ -330,9 +336,9 @@ double UnionPlanner::HoloObstacleHeuristic(std::shared_ptr<Node3d> next_node)
 {
     double h = 0.0;
     // h = std::fabs(next_node->GetX() - end_node_->GetX()) + std::fabs(next_node->GetY() - end_node_->GetY());
-    // h = std::sqrt(std::pow(next_node->GetX() - end_node_->GetX(), 2) + std::pow(next_node->GetY() - end_node_->GetY(), 2));
+    h += std::sqrt(std::pow(next_node->GetX() - end_node_->GetX(), 2) + std::pow(next_node->GetY() - end_node_->GetY(), 2));
     h += heu_remain_distance_penalty_ * std::fabs(50.0 - next_node->GetS());
-    h += heu_l_diff_penalty_ * std::fabs(next_node->GetL());
+    h += heu_l_diff_penalty_ * std::fabs(end_node_->GetL() - next_node->GetL());
     return h;
 }
 
@@ -344,6 +350,14 @@ bool UnionPlanner::GetResult(PlannerResult* result)
     std::vector<double> result_phi;
     std::vector<double> result_v;
     std::vector<double> result_steer;
+
+    // 放入终点
+    // result_x.push_back(end_node_->GetX());
+    // result_y.push_back(end_node_->GetY());
+    // result_phi.push_back(end_node_->GetPhi());
+    // result_v.push_back(end_node_->GetV());
+    // result_steer.push_back(end_node_->GetSteer());
+
     while (current_node->GetPreNode() != nullptr) {
         // std::vector<double> x = current_node->GetXs();
         // std::vector<double> y = current_node->GetYs();

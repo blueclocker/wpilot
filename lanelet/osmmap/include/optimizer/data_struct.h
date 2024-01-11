@@ -65,10 +65,12 @@ struct WarmStartConfig {
   // double traj_forward_penalty = 0;//0
   // double traj_back_penalty = 10.0;//0
   // double traj_gear_switch_penalty = 100.0;//10
-  double traj_steer_penalty = 10.0;//100
-  double traj_steer_change_penalty = 10.0;//10
-  double traj_v_change_penalty = 5.0;
-  double traj_l_penalty = 100.0;
+  double traj_steer_penalty = 30.0;//100
+  double traj_steer_change_penalty = 20.0;//10
+  double traj_v_penalty = 30.0;
+  double traj_v_change_penalty = 20.0;
+  double traj_l_penalty = 30.0;
+  double traj_s_penalty = 10.0;
 
   double heu_remain_distance_penalty = 10.0;
   double heu_l_diff_penalty = 20.0;
