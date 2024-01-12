@@ -71,7 +71,7 @@ private:
     // check collision and validity
     bool ValidityCheck(std::shared_ptr<Node3d> node);
     std::shared_ptr<Node3d> Next_node_generator(
-        std::shared_ptr<Node3d> current_node, size_t next_node_index, double traveled_distance);
+        std::shared_ptr<Node3d> current_node, size_t next_node_index, double travle_v);
     void CalculateNodeCost(std::shared_ptr<Node3d> current_node,
                             std::shared_ptr<Node3d> next_node);
     double TrajCost(std::shared_ptr<Node3d> current_node,
