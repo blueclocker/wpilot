@@ -8,92 +8,17 @@
 #include <eigen3/Eigen/Eigen>
 #include <vector>
 #include <carla_msgs/CarlaEgoVehicleControl.h>
+#include <mutex>
 
+std::mutex mtx;
 ros::Publisher perfect_control_pub;
-std::vector<double> current_position(5); //x, y, z, yaw, v
-std::vector<double> next_position(5); // x, y, z, yaw, v
+std::vector<std::vector<double>> trajectory;
+std::vector<double> goal_position(3);//x, y, z
 std::deque<double> m_buffer_pid;
 double prev_throttle = 0;
 double v_error_previous = 0;
 double alpha_previous = 0;
-
-void trajectoryCallback(const visualization_msgs::Marker::ConstPtr &msg)
-{
-    ROS_INFO("Received current path ...");
-    next_position[4] = 0;
-    if(msg->points.size() < 2) return;
-    double remain_dis = std::sqrt((msg->points.back().x-current_position[0])*(msg->points.back().x-current_position[0])+
-                                  (msg->points.back().y-current_position[1])*(msg->points.back().y-current_position[1]));
-    if(remain_dis < 0.1) return;
-
-    double lookahead = current_position[4];
-    if(lookahead < 2.0) lookahead = 2.0;
-
-    double sum_length = 0.2;
-    double next_x = msg->points[1].x;
-    double next_y = msg->points[1].y;
-    double next_z = msg->points[1].z;
-    bool is_stop = true;
-    for(int i = 2; i < msg->points.size(); ++i){
-        if(sum_length > lookahead) {
-            is_stop = false;
-            break;
-        }
-        next_x = msg->points[i].x;
-        next_y = msg->points[i].y;
-        next_z = msg->points[i].z;
-        sum_length += 0.2;
-    }
-
-    double diff_x = next_x - msg->points[0].x;
-    double diff_y = next_y - msg->points[0].y;
-    double yaw = std::atan2(diff_y, diff_x);
-
-    next_position[0] = next_x;
-    next_position[1] = next_y;
-    next_position[2] = next_z;
-    next_position[3] = yaw;
-    next_position[4] = 5.0;
-    if(is_stop) next_position[4] = 0;
-
-    // std::cout << "cur_x: " << current_position[0] << ", cur_y: " << current_position[1] << std::endl;
-    // std::cout << "first_x: " << msg->points[0].x << ", first_y: " << msg->points[0].y << std::endl;
-    // std::cout << "next_x: " << next_x << ", next_y: " << next_y << std::endl;
-}
-
-void odomCallback(const nav_msgs::Odometry::ConstPtr &msg)
-{
-    ROS_INFO("Received current odometry in trajectory controller ...");
-    std::vector<double> current_pose(3);     // x, y, yaw
-    std::vector<double> current_velocity(3); // vx, vy, magnitude
-    double current_z = 0;
-
-    geometry_msgs::Quaternion geo_quat = msg->pose.pose.orientation;
-
-    // the incoming geometry_msgs::Quaternion is transformed to a tf::Quaterion
-    tf::Quaternion quat;
-    tf::quaternionMsgToTF(geo_quat, quat);
-
-    // the tf::Quaternion has a method to acess roll pitch and yaw
-    double roll, pitch, yaw;
-    tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
-
-    current_pose[0] = msg->pose.pose.position.x;
-    current_pose[1] = msg->pose.pose.position.y;
-    current_pose[2] = yaw;
-
-    current_velocity[0] = msg->twist.twist.linear.x;
-    current_velocity[1] = msg->twist.twist.linear.y;
-    current_velocity[2] = std::hypot(current_velocity[0], current_velocity[1]);
-
-    current_z = msg->pose.pose.position.z;
-
-    current_position[0] = current_pose[0];
-    current_position[1] = current_pose[1];
-    current_position[2] = current_z;
-    current_position[3] = current_pose[2];
-    current_position[4] = current_velocity[2];
-}
+bool arriving = false;
 
 int get_steering_direction(std::vector<double> v1, std::vector<double> v2) {
     double cross_prod = v1[0] * v2[1] - v1[1] * v2[0];
@@ -109,29 +34,24 @@ double get_alpha(std::vector<double> v1, std::vector<double> v2,
   return acos(inner_prod / lookahead_distance);
 }
 
-void calc_command(){
+void calc_command(const std::vector<double> &next_position, const std::vector<double> &current_position){
+    // std::vector<double> next_position(5); // x, y, z, yaw, v
+    // std::vector<double> current_position(5); // x, y, z, yaw, v
     double steering = 0;
     double throttle = 0;
     double brake = 0;
 
     //steer
-    double kvf = 1.0;       // CONSTANT TO BE MOVED TO CONSTRUCTOR
-    double wheelbase = 2.8; // CONSTANT TO BE MOVED TO CONSTRUCTOR
-    double kpp = 0.1;       // CONSTANT TO BE MOVED TO CONSTRUCTOR
+    double wheelbase = 2.8; 
     std::vector<double> v1 = {next_position[0]-current_position[0], next_position[1] - current_position[1]};
     double lookahead_distance = std::sqrt(v1[0]*v1[0] + v1[1]*v1[1]);
-
     double alpha = current_position[3] - next_position[3];
-    // std::cout << "alpha: " << alpha << ", yaw: " << current_position[3] << std::endl;
-    // std::cout << "lookahead distance: " << lookahead_distance << std::endl;
-    // steering = get_steering_direction(v1, v2) *
-    //            atan((2 * wheelbase * sin(alpha)) / lookahead_distance);
     steering = atan((2 * wheelbase * sin(alpha)) / lookahead_distance);
 
     //throttle
-    double kp = 0.5;  // CONSTANT TO BE MOVED TO CONSTRUCTOR
-    double ki = 0.02; // CONSTANT TO BE MOVED TO CONSTRUCTOR
-    double kd = 0.05; // CONSTANT TO BE MOVED TO CONSTRUCTOR
+    double kp = 0.5;
+    double ki = 0.02;
+    double kd = 0.05;
     double dt = 0.1;
     double v_error = next_position[4] - current_position[4];
     m_buffer_pid.push_back(v_error);
@@ -152,9 +72,12 @@ void calc_command(){
     v_error_previous = v_error;
 
     // command
-    if (next_position[4] < 0.01) {
+    double remain_dis = std::sqrt((goal_position[0]-current_position[0])*(goal_position[0]-current_position[0])+
+                                  (goal_position[1]-current_position[1])*(goal_position[1]-current_position[1]));
+    if(remain_dis < 5.0 || arriving) 
+    {
+      arriving = true;
       throttle = 0;
-      steering = 0;
       brake = 1;
       ROS_WARN("STOP!");
     }
@@ -173,6 +96,72 @@ void calc_command(){
     ROS_INFO("steer: %f, throttle: %f, brake: %f", steering, throttle, brake);
 }
 
+void trajectoryCallback(const visualization_msgs::Marker::ConstPtr &msg)
+{
+    ROS_INFO("Received current path ...");
+
+    mtx.lock();
+    trajectory.clear();
+    for(int i = 0; i < msg->points.size(); ++i)
+    {
+        trajectory.push_back({msg->points[i].x, msg->points[i].y, msg->points[i].z});
+        if(i >= 50) break;
+    }
+    mtx.unlock();
+}
+
+void odomCallback(const nav_msgs::Odometry::ConstPtr &msg)
+{
+    if(trajectory.empty()) return;
+    ROS_INFO("Received current odometry in trajectory controller ...");
+    std::vector<double> next_position(5); // x, y, z, yaw, v
+    std::vector<double> current_position(5); //x, y, z, yaw, v
+
+    geometry_msgs::Quaternion geo_quat = msg->pose.pose.orientation;
+    // the incoming geometry_msgs::Quaternion is transformed to a tf::Quaterion
+    tf::Quaternion quat;
+    tf::quaternionMsgToTF(geo_quat, quat);
+    // the tf::Quaternion has a method to acess roll pitch and yaw
+    double roll, pitch, yaw;
+    tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
+    current_position[0] = msg->pose.pose.position.x;
+    current_position[1] = msg->pose.pose.position.y;
+    current_position[2] = msg->pose.pose.position.z;
+    current_position[3] = yaw;
+    current_position[4] = std::hypot(msg->twist.twist.linear.x, msg->twist.twist.linear.y);
+
+    next_position[4] = 0;
+    double lookahead = current_position[4];
+    if(lookahead < 2.0) lookahead = 2.0;
+
+    mtx.lock();
+    for(int i = 0; i < trajectory.size(); ++i){
+        double diff_x = trajectory[i][0] - current_position[0];
+        double diff_y = trajectory[i][1] - current_position[1];
+        double yaw = std::atan2(diff_y, diff_x);
+
+        next_position[0] = trajectory[i][0];
+        next_position[1] = trajectory[i][1];
+        next_position[2] = trajectory[i][2];
+        next_position[3] = yaw;
+        next_position[4] = 5.0;
+
+        if(std::sqrt(diff_x * diff_x + diff_y * diff_y) > lookahead) break;
+    }
+    mtx.unlock();
+
+    calc_command(next_position, current_position);
+}
+
+void goalpointCallback(const geometry_msgs::PoseStamped::ConstPtr &msg)
+{
+    ROS_INFO("Received goal point position ...");
+
+    goal_position[0] = msg->pose.position.x;
+    goal_position[1] = msg->pose.position.y;
+    goal_position[2] = msg->pose.position.z;
+}
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "perfect_control_node");
@@ -180,13 +169,11 @@ int main(int argc, char **argv)
     perfect_control_pub = nh.advertise<carla_msgs::CarlaEgoVehicleControl>("/carla/ego_vehicle/vehicle_control_cmd", 1);
     ros::Subscriber odom_sub = nh.subscribe("/carla/ego_vehicle/odometry", 1, odomCallback);
     ros::Subscriber trajectory_sub = nh.subscribe("/navagation_node/golbalpath_info", 1, trajectoryCallback);
+    ros::Subscriber goal_sub = nh.subscribe("/move_base_simple/goal", 1, goalpointCallback);
     ros::Rate r(10);
 
     while(nh.ok())
     {
-        std::cout << "------------------------------------------" << std::endl;
-        calc_command();
-        std::cout << "------------------------------------------" << std::endl;
         ros::spinOnce();
         r.sleep();
     }
