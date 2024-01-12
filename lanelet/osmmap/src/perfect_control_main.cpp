@@ -130,7 +130,6 @@ void odomCallback(const nav_msgs::Odometry::ConstPtr &msg)
     current_position[3] = yaw;
     current_position[4] = std::hypot(msg->twist.twist.linear.x, msg->twist.twist.linear.y);
 
-    next_position[4] = 0;
     double lookahead = current_position[4];
     if(lookahead < 2.0) lookahead = 2.0;
 
@@ -148,6 +147,7 @@ void odomCallback(const nav_msgs::Odometry::ConstPtr &msg)
 
         if(std::sqrt(diff_x * diff_x + diff_y * diff_y) > lookahead) break;
     }
+    if(arriving) next_position[4] = 0.0;
     mtx.unlock();
 
     calc_command(next_position, current_position);
