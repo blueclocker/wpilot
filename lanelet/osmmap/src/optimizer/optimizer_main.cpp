@@ -30,7 +30,7 @@ optimizer::PlannerOpenSpaceConfig planner_open_space_config_;
 std::unique_ptr<optimizer::UnionPlanner> hybrid_test_ = 
 std::unique_ptr<optimizer::UnionPlanner>(new optimizer::UnionPlanner(planner_open_space_config_));
 // std::vector<double> XYbounds{0.0, 80.0, 0.0, 50.0};
-std::vector<double> XYbounds{0.0, 50.0, -4.0, 4.0};
+std::vector<double> XYbounds{0.0, 50.0, -4.0, 12.0};
 std::vector<std::vector<optimizer::Vec2d>> obstacles_list;
 std::vector<optimizer::Vec2d> globalpath;
 std::vector<double> start_state(5); //x, y, z, yaw, v
@@ -88,7 +88,7 @@ void visualizationMap()
     // 左边界
     map_marker.id = 0;
     a.x = XYbounds[0];
-    a.y = XYbounds[3];
+    a.y = 4.0;
     map_marker.points.push_back(a);
     a.x = XYbounds[1];
     map_marker.points.push_back(a);
@@ -97,7 +97,7 @@ void visualizationMap()
     // 右边界
     map_marker.id = 1;
     a.x = XYbounds[0];
-    a.y = XYbounds[2];
+    a.y = -4.0;
     map_marker.points.clear();
     map_marker.points.push_back(a);
     a.x = XYbounds[1];
@@ -107,7 +107,28 @@ void visualizationMap()
     // 中心线
     map_marker.id = 2;
     a.x = XYbounds[0];
-    a.y = (XYbounds[3] + XYbounds[2]) / 2.0;
+    a.y = 0.0;
+    map_marker.points.clear();
+    map_marker.scale.x = 0.1;
+    map_marker.points.push_back(a);
+    a.x = XYbounds[1];
+    map_marker.points.push_back(a);
+    map_markers.markers.push_back(map_marker);
+
+    // change lane
+    map_marker.id = 3;
+    a.x = XYbounds[0];
+    a.y = 12.0;
+    map_marker.points.clear();
+    map_marker.scale.x = 0.2;
+    map_marker.points.push_back(a);
+    a.x = XYbounds[1];
+    map_marker.points.push_back(a);
+    map_markers.markers.push_back(map_marker);
+
+    map_marker.id = 4;
+    a.x = XYbounds[0];
+    a.y = 8.0;
     map_marker.points.clear();
     map_marker.scale.x = 0.1;
     map_marker.points.push_back(a);
@@ -323,16 +344,28 @@ void setGlobalpath()
 {
     globalpath.clear();
     std::vector<map::centerway::CenterPoint3D> pathnode;
+    // cruise
+    // for(double i = 0.0; i < 51; i += 5.0){
+    //     pathnode.emplace_back(i, 0.0);
+    // }
+
+    // change lane
     for(double i = 0.0; i < 51; i += 5.0){
-        pathnode.emplace_back(i, 0.0);
+        if(i < 11){
+            pathnode.emplace_back(i, 0.0);
+        }else if(i < 16){
+            pathnode.emplace_back(i, 4.0);
+        }else{
+            pathnode.emplace_back(i, 8.0);
+        }
     }
+
     plan::Spline2D csp_obj(pathnode);
     for(double i = 0; i < csp_obj.s.back(); i += 0.2)
     {
         std::array<double, 3> point = csp_obj.calc_postion(i);
         globalpath.emplace_back(point[0], point[1]);
     }
-    //
 }
 
 void setCruise()
@@ -340,11 +373,19 @@ void setCruise()
     ROS_INFO("set obstacles!");
     obstacles_list.clear();
     std::vector<optimizer::Vec2d> a_obstacle;
-    a_obstacle.emplace_back(20.0, -3.5);
-    a_obstacle.emplace_back(25.0, -3.5);
-    a_obstacle.emplace_back(25.0, -0.5);
-    a_obstacle.emplace_back(20.0, -0.5);
-    a_obstacle.emplace_back(20.0, -3.5);
+    a_obstacle.emplace_back(20.0, -1.5);
+    a_obstacle.emplace_back(25.0, -1.5);
+    a_obstacle.emplace_back(25.0, 1.5);
+    a_obstacle.emplace_back(20.0, 1.5);
+    a_obstacle.emplace_back(20.0, -1.5);
+    obstacles_list.emplace_back(a_obstacle);
+
+    a_obstacle.clear();
+    a_obstacle.emplace_back(30.0, -1.5);
+    a_obstacle.emplace_back(35.0, -1.5);
+    a_obstacle.emplace_back(35.0, 1.5);
+    a_obstacle.emplace_back(30.0, 1.5);
+    a_obstacle.emplace_back(30.0, -1.5);
     obstacles_list.emplace_back(a_obstacle);
 }
 
@@ -842,7 +883,7 @@ int main(int argc, char **argv)
     ros::Subscriber globalpath_sub = nh.subscribe("/navagation_node/golbalpath_info", 1, PathCallback);
 
     // setObs();
-    // setCruise();
+    setCruise();
     setGlobalpath();
     ros::Rate r(10);
     while(nh.ok()){
