@@ -842,7 +842,7 @@ int main(int argc, char **argv)
     ros::Subscriber globalpath_sub = nh.subscribe("/navagation_node/golbalpath_info", 1, PathCallback);
 
     // setObs();
-    // setCruise();
+    setCruise();
     setGlobalpath();
     ros::Rate r(10);
     while(nh.ok()){
