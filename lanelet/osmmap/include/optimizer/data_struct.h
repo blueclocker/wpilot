@@ -58,7 +58,7 @@ struct VehicleParam {
 
 struct WarmStartConfig {
   // Hybrid a star for warm start
-  double xy_grid_resolution = 0.2;
+  double xy_grid_resolution = 0.02;
   double phi_grid_resolution = 0.1;//0.05
   u_int64_t next_node_num = 7;//10
   double step_size = 0.5;
