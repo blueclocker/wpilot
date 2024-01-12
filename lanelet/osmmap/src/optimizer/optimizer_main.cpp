@@ -244,7 +244,7 @@ void StartpointCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr
     {
         ROS_INFO("start plan ...");
         result.clear();
-        bool find = hybrid_test_->Plan(sx, sy, sphi, 0.0, ex, ey, ephi, 
+        bool find = hybrid_test_->Plan(sx, sy, sphi, 10.0, ex, ey, ephi, 
                                        XYbounds, obstacles_list, globalpath, &result);
         if(!find) return;
         std::cout << "the number of find path is " << result.x.size() << std::endl;
@@ -265,7 +265,7 @@ void GoalpointCallback(const geometry_msgs::PoseStamped::ConstPtr &msg)
     {
         ROS_INFO("start plan ...");
         result.clear();
-        bool find = hybrid_test_->Plan(sx, sy, sphi, 0.0, ex, ey, ephi, 
+        bool find = hybrid_test_->Plan(sx, sy, sphi, 10.0, ex, ey, ephi, 
                                        XYbounds, obstacles_list, globalpath, &result);
         if(!find) return;
         std::cout << "the number of find path is " << result.x.size() << std::endl;
@@ -842,7 +842,7 @@ int main(int argc, char **argv)
     ros::Subscriber globalpath_sub = nh.subscribe("/navagation_node/golbalpath_info", 1, PathCallback);
 
     // setObs();
-    setCruise();
+    // setCruise();
     setGlobalpath();
     ros::Rate r(10);
     while(nh.ok()){

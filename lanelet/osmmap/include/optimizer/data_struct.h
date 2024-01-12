@@ -63,16 +63,16 @@ struct WarmStartConfig {
   u_int64_t next_node_num = 7;//10
   double step_size = 0.5;
 
-  double traj_steer_penalty = 12.0;//100
+  double traj_steer_penalty = 3.0;//100
   double traj_steer_change_penalty = 3.0;//10
-  double traj_v_penalty = 12.0;
-  double traj_v_change_penalty = 4.0;
+  double traj_v_penalty = 400.0;
+  double traj_v_change_penalty = 1.0;
   double traj_l_penalty = 13.0;
   double traj_s_penalty = 10.0;
 
-  double heu_phi_penalty = 10.0;
+  double heu_phi_penalty = 2000.0;
   double heu_remain_distance_penalty = 10.0;
-  double heu_l_diff_penalty = 20.0;
+  double heu_l_diff_penalty = 30.0;
   // Grid a star for heuristic
   double grid_a_star_xy_resolution = 0.1;
   double node_radius = 0.5;

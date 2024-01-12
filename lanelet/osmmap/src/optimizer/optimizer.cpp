@@ -119,26 +119,24 @@ bool UnionPlanner::Plan(double sx, double sy, double sphi, double sv, double ex,
         // const double rs_start_time = Clock::NowInSeconds();
         // 搜索成功退出点
         if (std::sqrt(std::pow((current_node->GetX() - end_node_->GetX()), 2) + 
-                    std::pow((current_node->GetY() - end_node_->GetY()), 2)) < 1.0) {
+                    std::pow((current_node->GetY() - end_node_->GetY()), 2)) < 0.5) {
             final_node_ = current_node;
             break;
         }
+        if(current_node->GetV() < 0.1) break;
         // const double rs_end_time = Clock::NowInSeconds();
         // rs_time += rs_end_time - rs_start_time;
         close_set_.emplace(current_node->GetIndex(), current_node);
 
-        double start_travel_distance = std::max(current_node->GetV() * 0.1 - 0.2, 0.0);
-        double end_travle_distance = std::min(current_node->GetV() * 0.1 + 0.2, 2.0);
-        // std::cout << "current node v: " << current_node->GetV() << std::endl;
-        // std::cout << "start travel distance: " << start_travel_distance << 
-        //              ", end travel distance: " << end_travle_distance << std::endl;
-        for(double travle_dis = start_travel_distance; 
-            travle_dis <= end_travle_distance; travle_dis += 0.05)
+        // traveled_v : [0, 10],
+        double start_v = std::max(current_node->GetV() - 0.2, 0.0);
+        double end_v = std::min(current_node->GetV() + 0.2, 10.0);
+        for(double travle_v = start_v; travle_v <= end_v; travle_v += 0.1)
         {
             for (size_t i = 0; i < next_node_num_; ++i) 
             {
                 // std::cout << "generate node travel distance: " << travle_dis << ", steer: " << i << std::endl;
-                std::shared_ptr<Node3d> next_node = Next_node_generator(current_node, i, travle_dis);
+                std::shared_ptr<Node3d> next_node = Next_node_generator(current_node, i, travle_v);
                 // boundary check failure handle
                 if (next_node == nullptr) {
                     continue;
@@ -237,7 +235,7 @@ bool UnionPlanner::ValidityCheck(std::shared_ptr<Node3d> node)
 }
 
 std::shared_ptr<Node3d> UnionPlanner::Next_node_generator(
-    std::shared_ptr<Node3d> current_node, size_t next_node_index, double traveled_distance)
+    std::shared_ptr<Node3d> current_node, size_t next_node_index, double travle_v)
 {
     double steering = 0.0;
     if (next_node_index < static_cast<double>(next_node_num_) / 2) {
@@ -277,12 +275,13 @@ std::shared_ptr<Node3d> UnionPlanner::Next_node_generator(
     //     last_y = next_y;
     //     last_phi = next_phi;
     // }
+    const double traveled_distance = travle_v * 0.1;
     const double next_x = last_x + traveled_distance * std::cos(last_phi);
     const double next_y = last_y + traveled_distance * std::sin(last_phi);
     const double next_phi = NormalizeAngle(
         last_phi +
         traveled_distance / vehicle_param_.wheel_base * std::tan(steering));
-    const double next_v = traveled_distance / 0.1; // 每个采样点之间间隔0.1s
+    const double next_v = travle_v; // 每个采样点之间间隔0.1s
     // check if the vehicle runs outside of XY boundary
     if (next_x > XYbounds_[1] ||
         next_x < XYbounds_[0] ||
@@ -330,11 +329,13 @@ double UnionPlanner::TrajCost(std::shared_ptr<Node3d> current_node,
     piecewise_cost += traj_steer_penalty_ * std::fabs(next_node->GetSteer());
     piecewise_cost += traj_steer_change_penalty_ *
                         std::fabs(next_node->GetSteer() - current_node->GetSteer());
-    piecewise_cost += traj_v_penalty_ * std::fabs(10.0 - next_node->GetV());
+    piecewise_cost += traj_v_penalty_ * std::fabs(2.0 - next_node->GetV());
     piecewise_cost += traj_v_change_penalty_ * 
                         std::fabs(next_node->GetV() - current_node->GetV());
     piecewise_cost += traj_l_penalty_ * std::fabs(next_node->GetL());
     // piecewise_cost += traj_s_penalty_ * std::fabs(next_node->GetS());
+    // piecewise_cost += heu_l_diff_penalty_ * std::fabs(end_node_->GetL() - next_node->GetL());
+    piecewise_cost += heu_phi_penalty_ * std::fabs(end_node_->GetPhi() - next_node->GetPhi());
     return piecewise_cost;
 }
 
@@ -343,9 +344,9 @@ double UnionPlanner::HoloObstacleHeuristic(std::shared_ptr<Node3d> next_node)
     double h = 0.0;
     // h = std::fabs(next_node->GetX() - end_node_->GetX()) + std::fabs(next_node->GetY() - end_node_->GetY());
     // h += std::sqrt(std::pow(next_node->GetX() - end_node_->GetX(), 2) + std::pow(next_node->GetY() - end_node_->GetY(), 2));
-    h += heu_remain_distance_penalty_ * std::fabs(50.0 - next_node->GetS());
-    // h += heu_l_diff_penalty_ * std::fabs(end_node_->GetL() - next_node->GetL());
-    h += heu_phi_penalty_ * std::fabs(end_node_->GetPhi() - next_node->GetPhi());
+    h += heu_remain_distance_penalty_ * std::fabs(end_node_->GetS() -next_node->GetS());
+    h += heu_l_diff_penalty_ * std::fabs(end_node_->GetL() - next_node->GetL());
+    // h += heu_phi_penalty_ * std::fabs(end_node_->GetPhi() - next_node->GetPhi());
     return h;
 }
 
@@ -359,11 +360,11 @@ bool UnionPlanner::GetResult(PlannerResult* result)
     std::vector<double> result_steer;
 
     // 放入终点
-    // result_x.push_back(end_node_->GetX());
-    // result_y.push_back(end_node_->GetY());
-    // result_phi.push_back(end_node_->GetPhi());
-    // result_v.push_back(end_node_->GetV());
-    // result_steer.push_back(end_node_->GetSteer());
+    result_x.push_back(end_node_->GetX());
+    result_y.push_back(end_node_->GetY());
+    result_phi.push_back(end_node_->GetPhi());
+    result_v.push_back(end_node_->GetV());
+    result_steer.push_back(end_node_->GetSteer());
 
     while (current_node->GetPreNode() != nullptr) {
         // std::vector<double> x = current_node->GetXs();
