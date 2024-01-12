@@ -3,7 +3,7 @@
 <launch>
 <!--param name="use_sim_time" value="true"/-->
 <arg name="file_path" default="$(find osmmap)/maps/"/>
-<arg name="file_name" default="Town02.osm"/>
+<arg name="file_name" default="Town02_single.osm"/>
 <arg name="origin_lat" default="39.9558622"/>
 <arg name="origin_lon" default="116.3105016"/>
 <!-- 58.45015716 -->
